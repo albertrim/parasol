@@ -1,0 +1,25 @@
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node (future)
+node_modules/
+.next/
+dist/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel
+
+# Playwright/MCP scratch
+.playwright-mcp/
+*.har
+*.trace
+debug-*.png
+debug-*.html

@@ -1,0 +1,2302 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>parasol-v2 — Live Beach 목업</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard+Variable:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* =================================================================
+   parasol-v2 Live Beach — Interactive Mockup (v2)
+   - Collapsible control bar
+   - 8 time-ordered scenarios, no time slider
+   - Theme picker leftmost
+   - Story player per role (multi-step interaction)
+   - Stronger wow: live counters, ticking prices, "왜 다른가" badge
+   ================================================================= */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+:root {
+  --phone-w: 390px;
+  --phone-h: 844px;
+  --radius: 28px;
+  --safe-top: 54px;
+  --safe-bot: 36px;
+}
+body {
+  font-family: 'Pretendard Variable', system-ui, -apple-system, sans-serif;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, #ffe0b2 0%, transparent 60%),
+    radial-gradient(900px 600px at 100% 10%, #c1d9ff 0%, transparent 50%),
+    linear-gradient(180deg, #f7f5f1 0%, #ece8df 100%);
+  color: #1a1a1a;
+  min-height: 100vh;
+  padding: 18px 16px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1320px; margin: 0 auto; }
+
+/* ============== HEADER + COLLAPSIBLE CONTROLS ============== */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px; margin-bottom: 12px;
+}
+header h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+header h1 .sub { font-weight: 500; color: #6a665d; font-size: 13px; margin-left: 8px; }
+header .meta { font-size: 12px; color: #6a665d; }
+header .meta b { color: #1a1a1a; font-weight: 700; }
+
+.toolbar {
+  background: rgba(255,255,255,0.78);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 16px;
+  margin-bottom: 22px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
+  overflow: hidden;
+}
+.toolbar-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; cursor: pointer; user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+.toolbar.open .toolbar-head { border-bottom-color: rgba(0,0,0,0.06); }
+.toolbar-head .left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; }
+.toolbar-head .chev {
+  width: 24px; height: 24px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.05); font-size: 11px;
+  transition: transform 0.25s ease;
+}
+.toolbar.open .toolbar-head .chev { transform: rotate(180deg); }
+.toolbar-head .summary {
+  font-size: 12px; color: #6a665d; font-weight: 500;
+}
+.toolbar-head .summary b { color: #1a1a1a; font-weight: 700; }
+.toolbar-body {
+  display: none; padding: 8px 16px 16px;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.toolbar.open .toolbar-body { display: grid; }
+@media (min-width: 1000px) {
+  .toolbar-body { grid-template-columns: 0.75fr 1.4fr 0.75fr; }
+}
+
+.panel { padding: 4px 0; }
+.panel h3 {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  color: #6a665d; text-transform: uppercase; margin-bottom: 10px;
+}
+.row { display:flex; flex-wrap:wrap; gap: 6px; align-items: center; }
+.pill {
+  appearance: none; cursor: pointer; border: 1px solid rgba(0,0,0,0.1);
+  background: white; padding: 7px 11px; border-radius: 999px;
+  font: inherit; font-size: 12.5px; font-weight: 600;
+  color: #2a2a2a; transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.pill:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.06); }
+.pill.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
+.pill.active.sc-heatwave   { background: #d97706; border-color: #d97706; }
+.pill.active.sc-sunset     { background: #8b3a62; border-color: #8b3a62; }
+.pill.active.sc-rain       { background: #2563eb; border-color: #2563eb; }
+.pill.active.sc-night      { background: #1e293b; border-color: #1e293b; }
+.pill.active.sc-tide       { background: #0891b2; border-color: #0891b2; }
+.pill.active.sc-morning    { background: #84cc16; border-color: #84cc16; }
+.pill.active.sc-heatup     { background: #f59e0b; border-color: #f59e0b; }
+
+/* ============== PHONES ============== */
+.phones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--phone-w), 1fr));
+  gap: 32px; justify-content: center; justify-items: center;
+}
+.phone {
+  width: var(--phone-w); height: var(--phone-h);
+  background: #0a0a0a;
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.04) inset,
+    0 30px 60px -20px rgba(0,0,0,0.45),
+    0 10px 30px -10px rgba(0,0,0,0.3);
+  position: relative;
+}
+.phone::before {
+  content: ""; position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 28px; background: #0a0a0a; border-radius: 999px;
+  z-index: 10; pointer-events: none;
+}
+.phone::after {
+  content: ""; position: absolute; top: 24px; left: calc(50% + 36px);
+  width: 8px; height: 8px; border-radius: 50%; background: #18181b;
+  z-index: 11; pointer-events: none;
+}
+.screen {
+  width: 100%; height: 100%; overflow: hidden;
+  border-radius: calc(var(--radius) - 12px); position: relative;
+  background: white;
+}
+.screen-label {
+  position: absolute; bottom: -28px; left: 0; right: 0; text-align: center;
+  font-size: 12px; font-weight: 600; color: #6a665d;
+}
+
+/* status bar */
+.statusbar {
+  position: absolute; top: 0; left: 0; right: 0; height: var(--safe-top);
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 8px 28px 6px; font-size: 13px; font-weight: 700; z-index: 6;
+  color: var(--statusbar-color, #1a1a1a); pointer-events: none;
+}
+.statusbar .icons { display: flex; gap: 6px; align-items: center; }
+.home-indicator {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 134px; height: 5px; border-radius: 999px;
+  background: var(--home-indicator-color, rgba(0,0,0,0.25));
+  z-index: 5; pointer-events: none;
+}
+.screen-body {
+  position: absolute; top: var(--safe-top); bottom: 0;
+  left: 0; right: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 4px 16px calc(var(--safe-bot) + 16px);
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.screen-body::-webkit-scrollbar { display: none; }
+
+/* ============================================================
+   THEME A — Sunglasses Minimal
+   ============================================================ */
+.t-A {
+  --bg: #faf7f1;
+  --bg-soft: #f0ece3;
+  --ink: #1a1a1a;
+  --ink-soft: #5a564e;
+  --line: rgba(26,26,26,0.08);
+  --accent: #1a1a1a;
+  --accent-warm: #d97706;
+  --accent-cool: #2563eb;
+  --statusbar-color: #1a1a1a;
+  --home-indicator-color: rgba(0,0,0,0.3);
+  --card: #ffffff;
+  --card-radius: 18px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.04);
+  --font: 'Pretendard Variable', system-ui, sans-serif;
+}
+
+/* ============================================================
+   THEME B — Deep Water  ❄️
+   ============================================================ */
+.t-B {
+  --ink: #f0fbff;
+  --ink-soft: rgba(220,240,255,0.72);
+  --line: rgba(180,220,255,0.18);
+  --accent: #ffffff;
+  --accent-warm: #7dd3fc;
+  --accent-cool: #67e8f9;
+  --statusbar-color: #f0fbff;
+  --home-indicator-color: rgba(255,255,255,0.6);
+  --card: rgba(8,32,58,0.55);
+  --card-radius: 22px;
+  --shadow: 0 6px 28px rgba(0,30,60,0.35), 0 0 0 1px rgba(180,220,255,0.06) inset;
+  --font: 'Pretendard Variable', system-ui, sans-serif;
+}
+.t-B .screen {
+  background:
+    radial-gradient(110% 80% at 20% 0%, rgba(125,211,252,0.18) 0%, transparent 55%),
+    radial-gradient(120% 80% at 80% 100%, rgba(8,145,178,0.45) 0%, transparent 60%),
+    linear-gradient(180deg, #0c4a6e 0%, #0e7490 35%, #1e3a8a 75%, #0b1f4a 100%);
+  color: var(--ink); position: relative;
+}
+.t-B .screen::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 15% 30%, rgba(255,255,255,0.06) 0 1px, transparent 2px),
+    radial-gradient(circle at 65% 20%, rgba(255,255,255,0.04) 0 1px, transparent 2px),
+    radial-gradient(circle at 85% 60%, rgba(255,255,255,0.05) 0 1px, transparent 2px),
+    radial-gradient(circle at 25% 80%, rgba(255,255,255,0.05) 0 1px, transparent 2px),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 0 1px, transparent 2px),
+    radial-gradient(circle at 90% 90%, rgba(255,255,255,0.04) 0 1px, transparent 2px);
+  background-size: 220px 220px, 180px 180px, 260px 260px, 200px 200px, 240px 240px, 200px 200px;
+  mix-blend-mode: screen; opacity: 0.9; z-index: 1;
+}
+.t-B .screen-body { z-index: 2; }
+@keyframes t-b-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1.5px); }
+}
+.t-B .hero, .t-B .groupbuy, .t-B .store-card, .t-B .order-row,
+.t-B .pickup-row, .t-B .live-order, .t-B .policy-card {
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+/* ============================================================
+   THEME C — Mint Paper  ☘️
+   ============================================================ */
+.t-C {
+  --bg: #fbfffe;
+  --bg-soft: #ecf9f4;
+  --ink: #0f3a32;
+  --ink-soft: #5f7e76;
+  --line: #d6ece4;
+  --accent: #0f3a32;
+  --accent-warm: #14b8a6;
+  --accent-cool: #0d9488;
+  --statusbar-color: #0f3a32;
+  --home-indicator-color: rgba(15,58,50,0.3);
+  --card: #ffffff;
+  --card-radius: 14px;
+  --shadow: 0 1px 0 #d6ece4, 0 4px 16px rgba(15,58,50,0.06);
+  --font: 'Pretendard Variable', system-ui, sans-serif;
+}
+.t-C .screen {
+  background:
+    radial-gradient(80% 50% at 100% 0%, rgba(20,184,166,0.06) 0%, transparent 60%),
+    var(--bg);
+  color: var(--ink);
+}
+.t-C .screen::after {
+  content: ""; position: absolute; inset: var(--safe-top) 0 var(--safe-bot) 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 22% 18%, rgba(15,58,50,0.025) 0 0.5px, transparent 1.5px),
+    radial-gradient(circle at 78% 42%, rgba(15,58,50,0.02)  0 0.5px, transparent 1.5px),
+    radial-gradient(circle at 40% 80%, rgba(15,58,50,0.022) 0 0.5px, transparent 1.5px);
+  background-size: 120px 120px, 160px 160px, 140px 140px; z-index: 1;
+}
+.t-C .screen-body { z-index: 2; }
+
+/* ============================================================
+   SHARED COMPONENTS
+   ============================================================ */
+.screen { font-family: var(--font); color: var(--ink); background: var(--bg, #faf7f1); }
+.t-A .screen { background: var(--bg); }
+
+/* === Top identity bar === */
+.top-id {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink-soft); margin-top: 4px; margin-bottom: 10px;
+}
+.top-id .dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+.top-id .pid { font-weight: 700; color: var(--ink); }
+
+/* === Context chip strip — fact-grid scrolling horizontally === */
+.cstrip {
+  display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px;
+  scrollbar-width: none; -ms-overflow-style: none;
+  padding-bottom: 2px;
+}
+.cstrip::-webkit-scrollbar { display: none; }
+.cstrip .ck {
+  background: var(--card); border: 1px solid var(--line);
+  padding: 8px 12px; border-radius: 12px;
+  font-size: 11px; color: var(--ink-soft); font-weight: 600;
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 96px; flex-shrink: 0;
+}
+.cstrip .ck b { font-size: 14px; color: var(--ink); font-weight: 800; }
+.t-B .cstrip .ck { backdrop-filter: blur(14px); border-color: var(--line); }
+
+/* === Hero context card === */
+.hero {
+  background: var(--card);
+  border-radius: var(--card-radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  position: relative; overflow: hidden;
+}
+.t-B .hero { border-color: var(--line); position: relative; }
+.t-B .hero::before {
+  content: ""; position: absolute; top: -20px; right: -20px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero .label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--ink-soft); text-transform: uppercase;
+}
+.hero .temp {
+  font-size: 56px; font-weight: 800; letter-spacing: -0.04em; line-height: 1;
+  margin: 6px 0 2px; font-variant-numeric: tabular-nums;
+}
+.t-B .hero .temp { text-shadow: 0 0 24px rgba(125,211,252,0.4); }
+.hero .feels { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.hero .feels .hot { color: var(--accent-warm); font-weight: 800; }
+.hero .feels .cool { color: var(--accent-cool); font-weight: 800; }
+.t-B .feels .hot { color: #fb923c; }
+.t-B .feels .cool { color: #67e8f9; }
+.t-C .feels .hot { color: #14b8a6; }
+.t-C .feels .cool { color: #0d9488; }
+.hero-meta {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
+}
+.hero-meta div { font-size: 11px; color: var(--ink-soft); }
+.hero-meta div b { display: block; font-size: 14px; color: var(--ink); font-weight: 700; margin-top: 2px; }
+
+/* === Trigger banner === */
+.trigger {
+  border-radius: var(--card-radius); padding: 14px 16px; margin-bottom: 12px;
+  color: white; box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  position: relative; overflow: hidden;
+}
+.trigger .copy { flex: 1; min-width: 0; }
+.trigger .copy .ti { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.9; }
+.trigger .copy .body { font-size: 15px; font-weight: 700; margin-top: 4px; line-height: 1.35; }
+.trigger .cta { font-size: 13px; font-weight: 800; padding: 8px 12px; border-radius: 999px; background: rgba(0,0,0,0.18); white-space: nowrap; }
+.trigger.heat   { background: linear-gradient(135deg, #ff5b3b, #d97706); }
+.trigger.sunset { background: linear-gradient(135deg, #b1473f, #5b2c5f); }
+.trigger.rain   { background: linear-gradient(135deg, #475569, #1e3a8a); }
+.trigger.tide   { background: linear-gradient(135deg, #0891b2, #1e3a8a); }
+.trigger.morning { background: linear-gradient(135deg, #84cc16, #16a34a); }
+.trigger.heatup  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.trigger.night   { background: linear-gradient(135deg, #1e293b, #0f172a); }
+.t-B .trigger.heat   { background: linear-gradient(135deg, #0891b2, #1e3a8a); }
+.t-B .trigger.sunset { background: linear-gradient(135deg, #6366f1, #1e3a8a); }
+.t-B .trigger.rain   { background: linear-gradient(135deg, #155e75, #1e3a8a); }
+.t-B .trigger.tide   { background: linear-gradient(135deg, #0e7490, #1e3a8a); }
+.t-B .trigger.morning{ background: linear-gradient(135deg, #06b6d4, #0e7490); }
+.t-B .trigger.heatup { background: linear-gradient(135deg, #0891b2, #155e75); }
+.t-B .trigger.night  { background: linear-gradient(135deg, #1e3a8a, #0b1f4a); }
+.t-C .trigger.heat   { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+.t-C .trigger.sunset { background: linear-gradient(135deg, #ec4899, #be185d); }
+.t-C .trigger.rain   { background: linear-gradient(135deg, #0d9488, #0f3a32); }
+.t-C .trigger.tide   { background: linear-gradient(135deg, #14b8a6, #0c4a6e); }
+.t-C .trigger.morning{ background: linear-gradient(135deg, #14b8a6, #15803d); }
+.t-C .trigger.heatup { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+.t-C .trigger.night  { background: linear-gradient(135deg, #0f3a32, #052e2b); }
+
+/* === Group buy card === */
+.groupbuy {
+  background: var(--card); border-radius: var(--card-radius);
+  padding: 16px; border: 1px solid var(--line); box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+.gb-head { display: flex; align-items: center; justify-content: space-between; }
+.gb-head .gbt {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent-warm); padding: 4px 8px; border-radius: 999px;
+  background: rgba(217,119,6,0.12);
+}
+.t-B .gb-head .gbt { background: rgba(103,232,249,0.16); color: #a5f3fc; }
+.t-C .gb-head .gbt { background: #d6ece4; color: #0d9488; }
+.gb-head .timer {
+  font-variant-numeric: tabular-nums; font-weight: 700; font-size: 13px; color: var(--ink-soft);
+}
+.t-C .timer { animation: t-c-pulse 2.4s ease-in-out infinite; border-radius: 8px; padding: 2px 6px; }
+.t-C .timer::before { content: "🧊 "; }
+@keyframes t-c-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(20,184,166,0.0); }
+  50%      { box-shadow: 0 0 0 4px rgba(20,184,166,0.18); }
+}
+.gb-item { font-size: 17px; font-weight: 800; margin: 10px 0 4px; letter-spacing: -0.01em; }
+.gb-price { display: flex; align-items: baseline; gap: 8px; }
+.gb-price .now {
+  font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
+  color: var(--accent-warm); font-variant-numeric: tabular-nums;
+  transition: color 0.4s ease;
+}
+.t-B .gb-price .now { color: #67e8f9; text-shadow: 0 0 12px rgba(103,232,249,0.4); }
+.t-C .gb-price .now { color: #0d9488; }
+.gb-price .was { font-size: 14px; color: var(--ink-soft); text-decoration: line-through; }
+.gb-price .delta {
+  font-size: 12px; font-weight: 800; color: white; background: var(--accent-warm);
+  padding: 2px 8px; border-radius: 999px;
+}
+.t-B .gb-price .delta { background: #06b6d4; }
+.t-C .gb-price .delta { background: #14b8a6; }
+.progress {
+  margin-top: 10px; height: 8px; border-radius: 999px;
+  background: rgba(0,0,0,0.08); overflow: hidden; position: relative;
+}
+.t-B .progress { background: rgba(180,220,255,0.18); }
+.progress .fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent-warm), #ff5b3b);
+  transition: width 0.7s ease;
+}
+.t-B .progress .fill { background: linear-gradient(90deg, #67e8f9, #38bdf8); }
+.t-C .progress .fill { background: linear-gradient(90deg, #14b8a6, #06b6d4); }
+.progress-meta {
+  display: flex; justify-content: space-between; font-size: 11px;
+  color: var(--ink-soft); margin-top: 6px;
+}
+.progress-meta b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* === Avatars row === */
+.avatars { display: flex; margin-top: 8px; }
+.avatars span {
+  width: 22px; height: 22px; border-radius: 50%; margin-left: -6px;
+  border: 2px solid var(--card);
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size: 10px; color: white; font-weight: 800;
+}
+.avatars span:nth-child(2) { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+.avatars span:nth-child(3) { background: linear-gradient(135deg, #f472b6, #be185d); }
+.avatars span:nth-child(4) { background: linear-gradient(135deg, #34d399, #059669); }
+.avatars span.more { background: var(--ink); color: white; font-size: 10px; }
+
+/* === Menu === */
+.section-title {
+  font-size: 13px; font-weight: 800; margin: 18px 0 10px; letter-spacing: -0.01em;
+}
+.section-title .all { float: right; font-size: 12px; color: var(--ink-soft); font-weight: 600; }
+.store-card {
+  background: var(--card); border-radius: var(--card-radius);
+  padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  display: flex; gap: 12px; align-items: center;
+}
+.store-img {
+  width: 52px; height: 52px; border-radius: 12px;
+  background: linear-gradient(135deg, #fcd34d, #f97316);
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.store-meta { flex: 1; min-width: 0; }
+.store-name { font-size: 15px; font-weight: 700; }
+.store-info { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.store-eta {
+  font-size: 12px; font-weight: 800; color: var(--accent-cool);
+  padding: 4px 8px; border-radius: 999px; background: rgba(37,99,235,0.1);
+}
+.t-B .store-eta { background: rgba(103,232,249,0.18); color: #a5f3fc; }
+.t-C .store-eta { background: #d6ece4; color: #0d9488; }
+
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip {
+  padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: var(--card); border: 1px solid var(--line); color: var(--ink);
+  cursor: pointer;
+}
+.chip.active { background: var(--ink); color: var(--bg, white); border-color: var(--ink); }
+.t-B .chip { background: rgba(8,32,58,0.45); color: var(--ink); backdrop-filter: blur(10px); }
+.t-B .chip.active { background: #67e8f9; color: #0b1f4a; border-color: #67e8f9; }
+.t-C .chip { background: #ffffff; color: var(--ink); border-color: var(--line); }
+.t-C .chip.active { background: #0f3a32; color: #fbfffe; border-color: #0f3a32; }
+
+/* === MERCHANT === */
+.order-row {
+  background: var(--card); border-radius: var(--card-radius);
+  padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent-warm);
+}
+.t-B .order-row { border-left-color: #67e8f9; }
+.t-C .order-row { border-left-color: #14b8a6; }
+.or-head { display: flex; justify-content: space-between; align-items: center; }
+.or-id { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+.or-elapsed { font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 800; color: var(--accent-warm); }
+.t-B .or-elapsed { color: #67e8f9; }
+.t-C .or-elapsed { color: #14b8a6; }
+.or-items { font-size: 14px; font-weight: 700; margin-top: 6px; line-height: 1.4; }
+.or-loc { font-size: 12px; color: var(--ink-soft); margin-top: 4px; display:flex; gap:6px; align-items:center; }
+.or-stage { display: flex; gap: 4px; margin-top: 10px; }
+.or-stage span { flex: 1; height: 4px; border-radius: 2px; background: rgba(0,0,0,0.08); }
+.t-B .or-stage span { background: rgba(180,220,255,0.18); }
+.or-stage span.done { background: var(--accent-warm); }
+.t-B .or-stage span.done { background: #67e8f9; }
+.t-C .or-stage span.done { background: #14b8a6; }
+
+.policy-card {
+  background: var(--card); border-radius: var(--card-radius);
+  padding: 14px; margin-top: 14px; border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.policy-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; font-size: 13px; font-weight: 600;
+}
+.policy-row + .policy-row { border-top: 1px solid var(--line); }
+.toggle {
+  width: 36px; height: 20px; border-radius: 999px;
+  background: rgba(0,0,0,0.18); position: relative; cursor: pointer; transition: background 0.2s;
+}
+.t-B .toggle { background: rgba(180,220,255,0.22); }
+.t-C .toggle { background: #d6ece4; }
+.toggle::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%; background: white;
+  transition: transform 0.2s;
+}
+.toggle.on { background: #22c55e; }
+.toggle.on::after { transform: translateX(16px); }
+.t-C .toggle.on { background: #14b8a6; }
+
+/* === COURIER === */
+.map {
+  background: var(--card); border-radius: var(--card-radius);
+  height: 200px; margin-bottom: 14px; position: relative;
+  overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);
+}
+.map-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 60% at 20% 50%, rgba(255,250,240,0.6) 0%, transparent 70%),
+    linear-gradient(180deg, #c1e4ff 0%, #92cffa 35%, #f1e2c0 36%, #ead8b0 100%);
+}
+.t-B .map-bg {
+  background:
+    linear-gradient(180deg, rgba(8,145,178,0.55) 0%, rgba(14,116,144,0.55) 45%, rgba(125,211,252,0.35) 46%, rgba(8,32,58,0.55) 100%);
+}
+.t-C .map-bg {
+  background:
+    radial-gradient(60% 60% at 20% 50%, rgba(214,236,228,0.85) 0%, transparent 70%),
+    linear-gradient(180deg, #ecfbf5 0%, #d6ece4 35%, #fbfffe 36%, #ecf9f4 100%);
+}
+.map-pin {
+  position: absolute; transform: translate(-50%, -100%);
+  font-size: 18px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.map-pin.me { font-size: 22px; }
+.map-route { position: absolute; inset: 0; pointer-events: none; }
+
+.pickup-row {
+  background: var(--card); border-radius: var(--card-radius);
+  padding: 12px 14px; margin-bottom: 10px; border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 12px;
+}
+.pickup-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent-warm); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px; flex-shrink: 0;
+}
+.t-B .pickup-num { background: #0891b2; }
+.t-C .pickup-num { background: #14b8a6; }
+.pickup-meta { flex: 1; min-width: 0; }
+.pickup-from { font-size: 13px; font-weight: 700; }
+.pickup-to { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.pickup-eta { font-size: 11px; color: var(--ink-soft); font-weight: 600; text-align: right; }
+.pickup-eta b { display: block; font-size: 15px; color: var(--ink); font-weight: 800; }
+
+/* === Bottom nav === */
+.bnav {
+  position: absolute; bottom: 0; left: 0; right: 0; height: var(--safe-bot);
+  border-top: 1px solid var(--line);
+  background: var(--bg, var(--card));
+  display: flex; justify-content: space-around; align-items: center;
+  z-index: 4; font-size: 10px; color: var(--ink-soft); font-weight: 600;
+}
+.t-A .bnav { background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); }
+.t-B .bnav { background: rgba(8,32,58,0.55); backdrop-filter: blur(20px); border-top-color: rgba(180,220,255,0.18); color: rgba(240,251,255,0.6); }
+.t-B .bnav .item.active { color: #f0fbff; }
+.t-C .bnav { background: rgba(251,255,254,0.92); backdrop-filter: blur(10px); border-top-color: #d6ece4; }
+.bnav .item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 10px; }
+.bnav .item .ic { font-size: 16px; }
+.bnav .item.active { color: var(--ink); }
+
+/* === Live order tracker === */
+.live-order {
+  background: var(--card); border-radius: var(--card-radius);
+  padding: 16px; margin-bottom: 14px; border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.live-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.live-head .tag {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 8px; border-radius: 999px;
+  background: rgba(34,197,94,0.18); color: #15803d;
+}
+.t-B .live-head .tag { background: rgba(103,232,249,0.22); color: #a5f3fc; }
+.t-C .live-head .tag { background: #d6ece4; color: #0d9488; }
+.live-eta {
+  font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+}
+.t-B .live-eta { text-shadow: 0 0 12px rgba(103,232,249,0.3); }
+.live-eta .unit { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
+.steps { display: flex; align-items: center; margin-top: 12px; gap: 4px; }
+.steps .step {
+  flex: 1; height: 6px; border-radius: 999px; background: rgba(0,0,0,0.08); position: relative;
+}
+.t-B .steps .step { background: rgba(180,220,255,0.18); }
+.steps .step.done { background: #22c55e; }
+.t-B .steps .step.done { background: #67e8f9; }
+.t-C .steps .step.done { background: #14b8a6; }
+.steps .step.active { background: linear-gradient(90deg, #22c55e 50%, rgba(0,0,0,0.08) 50%); }
+.t-B .steps .step.active { background: linear-gradient(90deg, #67e8f9 50%, rgba(180,220,255,0.18) 50%); }
+.t-C .steps .step.active { background: linear-gradient(90deg, #14b8a6 50%, rgba(0,0,0,0.08) 50%); }
+.step-labels { display:flex; justify-content: space-between; font-size: 10px; color: var(--ink-soft); margin-top: 6px; font-weight: 600; }
+
+/* === Courier-near banner (the "30m 앞" wow) === */
+.courier-near {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--card-radius); padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+  box-shadow: var(--shadow); position: relative;
+}
+.courier-near .ring {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, #fcd34d, #f59e0b);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0; position: relative;
+}
+.courier-near .ring::after {
+  content: ""; position: absolute; inset: -3px; border-radius: 50%;
+  border: 2px solid #f59e0b; animation: ping-ring 2s ease-out infinite;
+}
+@keyframes ping-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.courier-near .body { flex: 1; }
+.courier-near .body .t { font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+.courier-near .body .n { font-size: 14px; font-weight: 800; margin-top: 2px; }
+.courier-near .dist {
+  font-size: 18px; font-weight: 800; color: var(--accent-warm);
+  font-variant-numeric: tabular-nums;
+}
+.t-B .courier-near .dist { color: #67e8f9; }
+.t-C .courier-near .dist { color: #14b8a6; }
+
+/* === Checkout sheet === */
+.sheet {
+  background: var(--card); border-radius: 20px; border: 1px solid var(--line);
+  padding: 18px; box-shadow: var(--shadow); margin-bottom: 12px;
+}
+.sheet .h { font-size: 12px; color: var(--ink-soft); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.sheet .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; font-size: 14px; font-weight: 600; }
+.sheet .item-row + .item-row { border-top: 1px solid var(--line); }
+.sheet .total {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-top: 8px; padding-top: 12px; border-top: 2px solid var(--ink);
+  font-weight: 800;
+}
+.sheet .total .amt {
+  font-size: 28px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+  color: var(--accent-warm);
+}
+.t-B .sheet .total .amt { color: #67e8f9; }
+.t-C .sheet .total .amt { color: #0d9488; }
+.cta-btn {
+  width: 100%; padding: 14px; border-radius: 14px; border: none;
+  background: var(--ink); color: var(--bg, white);
+  font: inherit; font-size: 15px; font-weight: 800;
+  cursor: pointer; margin-top: 8px;
+}
+.t-A .cta-btn { background: #1a1a1a; color: white; }
+.t-B .cta-btn { background: #67e8f9; color: #0b1f4a; }
+.t-C .cta-btn { background: #0f3a32; color: #fbfffe; }
+.savings {
+  display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
+  color: var(--accent-warm); margin-top: 6px;
+}
+.t-B .savings { color: #67e8f9; }
+.t-C .savings { color: #14b8a6; }
+
+/* === Rating modal === */
+.rating-card {
+  background: var(--card); border-radius: 20px; padding: 22px;
+  border: 1px solid var(--line); box-shadow: var(--shadow); margin-bottom: 12px;
+  text-align: center;
+}
+.rating-card .big { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 4px; }
+.rating-card .sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 18px; }
+.rating-card .stars { display: flex; justify-content: center; gap: 6px; font-size: 30px; margin-bottom: 14px; }
+.rating-card .stars span.on { filter: none; }
+.rating-card .stars span:not(.on) { filter: grayscale(1) opacity(0.4); }
+.rating-card .weather-adj {
+  background: rgba(0,0,0,0.04); border-radius: 12px; padding: 10px 12px;
+  font-size: 12px; color: var(--ink-soft); margin-top: 8px; text-align: left;
+  line-height: 1.5;
+}
+.t-B .rating-card .weather-adj { background: rgba(255,255,255,0.06); }
+.t-C .rating-card .weather-adj { background: #ecf9f4; }
+.rating-card .weather-adj b { color: var(--ink); }
+
+/* === Story player UI === */
+.story-bar {
+  position: sticky; bottom: 0; left: 0; right: 0; z-index: 8;
+  margin: 20px auto 0; max-width: 720px;
+  background: rgba(20,20,20,0.92); color: white;
+  backdrop-filter: blur(16px);
+  border-radius: 18px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.28);
+}
+.story-bar .step-display {
+  font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;
+}
+.story-bar .step-display b { color: white; font-weight: 800; }
+.story-bar .step-label {
+  font-size: 14px; font-weight: 700; flex: 1; min-width: 0;
+}
+.story-bar button {
+  background: rgba(255,255,255,0.15); color: white; border: none;
+  padding: 8px 12px; border-radius: 10px; font: inherit; font-size: 12px;
+  font-weight: 700; cursor: pointer; transition: background 0.15s;
+}
+.story-bar button:hover { background: rgba(255,255,255,0.28); }
+.story-bar button:disabled { opacity: 0.3; cursor: not-allowed; }
+.story-progress {
+  display: flex; gap: 3px; margin-top: 8px;
+}
+.story-progress span {
+  flex: 1; height: 3px; border-radius: 999px; background: rgba(255,255,255,0.18);
+  transition: background 0.3s;
+}
+.story-progress span.done { background: #67e8f9; }
+.story-progress span.now { background: white; }
+.story-bar-wrap {
+  position: sticky; bottom: 16px; display: flex; justify-content: center;
+  z-index: 8; margin-top: 22px;
+}
+.story-bar-wrap .inner {
+  background: rgba(20,20,20,0.94); color: white;
+  backdrop-filter: blur(20px); border-radius: 18px;
+  padding: 14px 18px; box-shadow: 0 12px 36px rgba(0,0,0,0.32);
+  max-width: 760px; width: 100%;
+}
+.story-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.story-meta .crumb {
+  font-size: 11px; color: rgba(255,255,255,0.65); font-weight: 600;
+}
+.story-meta .crumb b { color: white; font-weight: 800; }
+.story-controls { display: flex; align-items: center; gap: 10px; }
+.story-controls .label {
+  flex: 1; font-size: 14px; font-weight: 700; line-height: 1.3;
+}
+.story-controls .label .num {
+  display: inline-block; background: rgba(255,255,255,0.15);
+  padding: 2px 8px; border-radius: 999px; font-size: 11px;
+  margin-right: 6px; font-variant-numeric: tabular-nums;
+}
+.story-controls button {
+  background: rgba(255,255,255,0.16); color: white; border: none;
+  padding: 9px 14px; border-radius: 10px; font: inherit; font-size: 13px;
+  font-weight: 700; cursor: pointer;
+}
+.story-controls button.primary { background: #67e8f9; color: #0b1f4a; }
+.story-controls button:disabled { opacity: 0.3; cursor: not-allowed; }
+.story-controls button:hover:not(:disabled) { transform: translateY(-1px); }
+
+/* === Courier action visualization === */
+.action-hero {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--card-radius); padding: 16px;
+  box-shadow: var(--shadow); margin-bottom: 14px;
+  border-left: 4px solid var(--accent-warm);
+}
+.t-B .action-hero { border-left-color: #67e8f9; backdrop-filter: blur(18px) saturate(140%); }
+.t-C .action-hero { border-left-color: #14b8a6; }
+.action-hero-tag {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+  color: var(--accent-warm); text-transform: uppercase; margin-bottom: 6px;
+}
+.t-B .action-hero-tag { color: #67e8f9; }
+.t-C .action-hero-tag { color: #14b8a6; }
+.action-hero-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; }
+.action-hero-sub { font-size: 13px; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
+.action-hero-sub b { color: var(--ink); font-weight: 800; }
+.primary-cta {
+  margin-top: 12px; background: var(--accent-warm) !important; color: white !important;
+  font-size: 16px; box-shadow: 0 8px 24px rgba(217,119,6,0.32);
+}
+.t-B .primary-cta { background: #06b6d4 !important; color: #0b1f4a !important; box-shadow: 0 8px 24px rgba(6,182,212,0.32); }
+.t-C .primary-cta { background: #14b8a6 !important; box-shadow: 0 8px 24px rgba(20,184,166,0.28); }
+
+/* Bundle viz inside queue action */
+.bundle-viz {
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
+}
+.bv-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; font-size: 12px; color: var(--ink-soft);
+}
+.bv-icon { font-size: 18px; }
+.bv-arrow { color: var(--ink-soft); font-weight: 800; }
+.bv-count {
+  margin-left: auto; background: var(--bg-soft, rgba(0,0,0,0.05));
+  padding: 3px 10px; border-radius: 999px;
+  font-weight: 800; color: var(--accent-warm); font-size: 11px;
+}
+.t-B .bv-count { background: rgba(103,232,249,0.18); color: #a5f3fc; }
+.t-C .bv-count { background: #d6ece4; color: #0d9488; }
+
+/* Route tracker (vertical timeline) */
+.route-tracker {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--card-radius); padding: 14px 18px;
+  margin-bottom: 14px; box-shadow: var(--shadow);
+}
+.t-B .route-tracker { backdrop-filter: blur(18px) saturate(140%); }
+.rt-step {
+  display: flex; align-items: center; gap: 14px;
+  padding: 6px 0; position: relative;
+}
+.rt-step + .rt-step::before {
+  content: ""; position: absolute; top: -10px; left: 12px;
+  width: 2px; height: 18px; background: var(--line);
+}
+.rt-step.done + .rt-step::before { background: #22c55e; }
+.rt-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--line); color: var(--ink-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 12px; flex-shrink: 0;
+}
+.rt-step.done .rt-num { background: #22c55e; color: white; }
+.rt-step.now .rt-num {
+  background: var(--accent-warm); color: white;
+  animation: rt-now-pulse 1.4s ease-in-out infinite;
+}
+@keyframes rt-now-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217,119,6,0.5); }
+  50%      { box-shadow: 0 0 0 8px rgba(217,119,6,0); }
+}
+.t-B .rt-step.now .rt-num { background: #06b6d4; animation-name: rt-now-pulse-b; }
+@keyframes rt-now-pulse-b {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(6,182,212,0.6); }
+  50%      { box-shadow: 0 0 0 8px rgba(6,182,212,0); }
+}
+.t-C .rt-step.now .rt-num { background: #14b8a6; animation-name: rt-now-pulse-c; }
+@keyframes rt-now-pulse-c {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(20,184,166,0.5); }
+  50%      { box-shadow: 0 0 0 8px rgba(20,184,166,0); }
+}
+.rt-label {
+  font-size: 14px; font-weight: 700; color: var(--ink); flex: 1;
+}
+.rt-step:not(.done):not(.now) .rt-label { color: var(--ink-soft); font-weight: 600; }
+.rt-time {
+  font-size: 11px; color: var(--ink-soft); font-weight: 600; margin-top: 1px;
+}
+
+/* Bundle box (4-item group) */
+.bundle-box {
+  background: var(--card); border: 2px dashed var(--accent-warm);
+  border-radius: var(--card-radius); padding: 8px;
+  margin-bottom: 10px; box-shadow: var(--shadow);
+  position: relative;
+}
+.bundle-box::before {
+  content: "묶음 4건"; position: absolute; top: -10px; left: 14px;
+  background: var(--accent-warm); color: white;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+}
+.t-B .bundle-box { border-color: #67e8f9; backdrop-filter: blur(18px) saturate(140%); }
+.t-B .bundle-box::before { background: #06b6d4; color: #0b1f4a; }
+.t-C .bundle-box { border-color: #14b8a6; }
+.t-C .bundle-box::before { background: #14b8a6; }
+.bundle-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 8px; border-radius: 10px;
+}
+.bundle-item + .bundle-item { border-top: 1px solid var(--line); }
+.bundle-item.done { opacity: 0.6; }
+.bundle-item.now { background: rgba(217,119,6,0.06); }
+.t-B .bundle-item.now { background: rgba(103,232,249,0.1); }
+.t-C .bundle-item.now { background: #ecf9f4; }
+.bundle-tag {
+  font-size: 10px; font-weight: 800; color: var(--ink-soft);
+  background: var(--bg-soft, rgba(0,0,0,0.05));
+  padding: 3px 6px; border-radius: 6px; flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.bundle-body { flex: 1; font-size: 13px; font-weight: 700; }
+.bundle-body span { display: block; font-size: 11px; color: var(--ink-soft); font-weight: 500; margin-top: 1px; }
+.bundle-check {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: var(--bg-soft, rgba(0,0,0,0.05));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: var(--ink-soft);
+}
+.bundle-check.done { background: #22c55e; color: white; }
+.bundle-item.done .bundle-body { text-decoration: line-through; color: var(--ink-soft); }
+
+/* Bundle progress (horizontal dots) */
+.bundle-progress {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--card-radius); padding: 14px;
+  margin-bottom: 12px; box-shadow: var(--shadow);
+}
+.t-B .bundle-progress { backdrop-filter: blur(18px) saturate(140%); }
+.bp-label {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+  color: var(--ink-soft); text-transform: uppercase; margin-bottom: 10px;
+}
+.bp-dots {
+  display: flex; align-items: center;
+}
+.bp-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--line); color: var(--ink-soft);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; flex-shrink: 0;
+}
+.bp-dot.done { background: #22c55e; color: white; }
+.bp-dot.now  { background: var(--accent-warm); color: white;
+  box-shadow: 0 0 0 4px rgba(217,119,6,0.18); }
+.t-B .bp-dot.now { background: #06b6d4; box-shadow: 0 0 0 4px rgba(6,182,212,0.24); }
+.t-C .bp-dot.now { background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,0.18); }
+.bp-line { flex: 1; height: 3px; background: var(--line); margin: 0 -2px; }
+.bp-meta { font-size: 12px; color: var(--ink-soft); margin-top: 10px; }
+.bp-meta b { color: var(--ink); font-weight: 800; }
+
+/* Customer ping (showing notification flying to phone) */
+.customer-ping {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--card-radius); padding: 16px 14px;
+  margin-bottom: 12px; box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 10px;
+}
+.t-B .customer-ping { backdrop-filter: blur(18px) saturate(140%); }
+.cp-phone {
+  width: 110px; height: 130px; border-radius: 14px;
+  background: #0f172a; padding: 6px; flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
+.cp-screen {
+  width: 100%; height: 100%; border-radius: 10px;
+  background: linear-gradient(180deg, #fcd34d, #f59e0b);
+  padding: 10px 8px; color: #1a1a1a;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cp-tag {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+  background: rgba(0,0,0,0.18); color: white;
+  padding: 2px 6px; border-radius: 999px;
+  align-self: flex-start;
+}
+.cp-msg { font-size: 12px; font-weight: 700; line-height: 1.3; }
+.cp-meta { font-size: 9px; color: rgba(0,0,0,0.6); font-weight: 600; margin-top: auto; }
+.cp-arrow {
+  font-size: 24px; color: var(--accent-warm); font-weight: 800;
+  animation: cp-arrow-fly 1.4s ease-in-out infinite;
+}
+.t-B .cp-arrow { color: #67e8f9; }
+.t-C .cp-arrow { color: #14b8a6; }
+@keyframes cp-arrow-fly {
+  0%, 100% { transform: translateX(0); opacity: 0.6; }
+  50%      { transform: translateX(4px); opacity: 1; }
+}
+.cp-target { flex: 1; text-align: center; }
+.cp-target-icon { font-size: 38px; }
+.cp-target-name { font-size: 12px; font-weight: 700; line-height: 1.35; margin-top: 4px; }
+
+/* Earn card (delivered) */
+.earn-card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--card-radius); padding: 16px;
+  margin-bottom: 12px; box-shadow: var(--shadow);
+}
+.t-B .earn-card { backdrop-filter: blur(18px) saturate(140%); }
+.ec-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; padding: 6px 0; font-weight: 600;
+}
+.ec-row b { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--ink); }
+.ec-total {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-top: 8px; padding-top: 12px; border-top: 2px solid var(--ink);
+  font-weight: 800; font-size: 15px;
+}
+.ec-total b { font-size: 26px; font-variant-numeric: tabular-nums; color: var(--accent-warm); letter-spacing: -0.02em; }
+.t-B .ec-total b { color: #67e8f9; }
+.t-C .ec-total b { color: #0d9488; }
+.ec-meta {
+  font-size: 11px; color: var(--ink-soft); margin-top: 10px;
+  padding-top: 10px; border-top: 1px solid var(--line);
+}
+.ec-meta b { color: var(--ink); font-weight: 800; }
+
+/* pickup-row highlight when "now" */
+.pickup-row.now {
+  border-color: var(--accent-warm);
+  background: rgba(217,119,6,0.04);
+  border-left: 3px solid var(--accent-warm);
+}
+.t-B .pickup-row.now { background: rgba(103,232,249,0.08); border-color: #67e8f9; border-left-color: #67e8f9; }
+.t-C .pickup-row.now { background: #ecf9f4; border-color: #14b8a6; border-left-color: #14b8a6; }
+
+footer {
+  margin-top: 38px; text-align: center; font-size: 12px; color: #8a8478;
+}
+footer code { background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>parasol-v2 <span class="sub">Live Beach 시뮬레이션</span></h1>
+    <div class="meta">파라솔 <b>#42</b> · 해운대 · <span id="ctx-summary">…</span></div>
+  </header>
+
+  <div class="toolbar open" id="toolbar">
+    <div class="toolbar-head" id="toolbar-head">
+      <div class="left">
+        <span>🎛️ 컨트롤</span>
+        <span class="summary" id="toolbar-summary"></span>
+      </div>
+      <div class="chev">▾</div>
+    </div>
+    <div class="toolbar-body">
+
+      <div class="panel">
+        <h3>🎨 디자인 테마</h3>
+        <div class="row" id="themes">
+          <button class="pill active" data-th="A">A · 선그라스 미니멀</button>
+          <button class="pill active" data-th="B">B · 딥 워터 🌊</button>
+          <button class="pill active" data-th="C">C · 민트 페이퍼 ☘️</button>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#6a665d;line-height:1.5;">
+          여러 개 선택 시 동시 비교, 하나만 선택 시 풀화면.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>🎬 시나리오 (시간순)</h3>
+        <div class="row" id="scenarios">
+          <button class="pill sc-morning"  data-sc="morning">🌅 09:30 아침 입장</button>
+          <button class="pill"             data-sc="normal">🌤️ 10:30 평소</button>
+          <button class="pill sc-tide"     data-sc="tide">🌊 11:00 만조 임박</button>
+          <button class="pill sc-heatup"   data-sc="heatup">🥵 13:00 더위 시작</button>
+          <button class="pill sc-heatwave active" data-sc="heatwave">☀️ 14:30 폭염 정점</button>
+          <button class="pill sc-rain"     data-sc="rain">⛈️ 16:20 소나기 5분 전</button>
+          <button class="pill sc-sunset"   data-sc="sunset">🌅 18:54 노을 D-25</button>
+          <button class="pill sc-night"    data-sc="night">🌌 20:30 야간 야식</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>👤 사용자 역할</h3>
+        <div class="row" id="roles">
+          <button class="pill active" data-rl="customer">🏖️ 손님</button>
+          <button class="pill" data-rl="merchant">🏪 사장님</button>
+          <button class="pill" data-rl="courier">🛵 배달원</button>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#6a665d;line-height:1.5;">
+          아래 ▶ 버튼으로 한 시나리오의 처음→끝까지 흐름을 따라가세요.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="phones" id="phones">
+    <!-- generated by JS -->
+  </div>
+
+  <div class="story-bar-wrap">
+    <div class="inner">
+      <div class="story-meta">
+        <span class="crumb">📖 <b id="story-title">…</b></span>
+        <div class="story-progress" id="story-progress" style="flex:1;margin:0 0 0 14px;"></div>
+      </div>
+      <div class="story-controls">
+        <button id="story-prev">◀ 이전</button>
+        <div class="label"><span class="num" id="story-num">1 / 6</span><span id="story-label">…</span></div>
+        <button id="story-next" class="primary">다음 ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <footer style="margin-top:24px;">
+    <code>~/Projects/parasol-v2/mockup/index.html</code> · 시나리오·역할별 풀 스토리 시연 모드
+  </footer>
+</div>
+
+<script>
+/* ===========================================================================
+   parasol-v2 mockup runtime — v2
+   ====================================================================== */
+
+// Global error catcher — shows errors at top of page so users see them immediately
+window.addEventListener('error', (ev) => {
+  showGlobalError(ev.message + ' @ ' + (ev.filename || '?') + ':' + ev.lineno);
+});
+window.addEventListener('unhandledrejection', (ev) => {
+  showGlobalError('Promise rejected: ' + (ev.reason && ev.reason.message || ev.reason));
+});
+function showGlobalError(msg) {
+  let box = document.getElementById('global-err-box');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'global-err-box';
+    box.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:white;padding:14px 20px;font:13px/1.5 monospace;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.25);max-height:40vh;overflow:auto;';
+    document.body.appendChild(box);
+  }
+  const line = document.createElement('div');
+  line.style.cssText = 'padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.2);';
+  line.textContent = '🚨 ' + msg;
+  box.appendChild(line);
+}
+
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+const state = {
+  scenario: 'heatwave',
+  role: 'customer',
+  themes: ['A','B','C'],
+  storyStep: 1,
+  // live counters (animated)
+  groupbuyMembers: 47,
+  liveEtaSec: 203,    // for courier delivery countdown
+};
+
+const scenarios = {
+  morning:  { name: '아침 입장', time: '09:30', tempC: 23.2, feelsLikeC: 22.8, humidity: 70, windMs: 3.5, rainProb30m: 0.0, uvIdx: 3.0, nowOrders: 6, surge: 0.7, minutesToSunset: 594, minutesToHighTide: 150 },
+  normal:   { name: '평소',      time: '10:30', tempC: 25.4, feelsLikeC: 25.0, humidity: 60, windMs: 2.5, rainProb30m: 0.05, uvIdx: 5.0, nowOrders: 12, surge: 1.0, minutesToSunset: 534, minutesToHighTide: 90 },
+  tide:     { name: '만조 임박', time: '11:00', tempC: 28.5, feelsLikeC: 30.0, humidity: 65, windMs: 3.2, rainProb30m: 0.1, uvIdx: 6.0, nowOrders: 18, surge: 1.1, minutesToSunset: 504, minutesToHighTide: 58 },
+  heatup:   { name: '더위 시작', time: '13:00', tempC: 31.0, feelsLikeC: 32.5, humidity: 70, windMs: 1.8, rainProb30m: 0.05, uvIdx: 8.4, nowOrders: 28, surge: 1.6, minutesToSunset: 384, minutesToHighTide: 360 },
+  heatwave: { name: '폭염 정점', time: '14:30', tempC: 32.8, feelsLikeC: 34.4, humidity: 72, windMs: 1.2, rainProb30m: 0.05, uvIdx: 9.4, nowOrders: 47, surge: 2.3, minutesToSunset: 294, minutesToHighTide: 450 },
+  rain:     { name: '소나기 5분 전', time: '16:20', tempC: 27.5, feelsLikeC: 28.5, humidity: 88, windMs: 6.5, rainProb30m: 0.78, uvIdx: 2.0, nowOrders: 22, surge: 1.4, minutesToSunset: 184, minutesToHighTide: 580 },
+  sunset:   { name: '노을 D-25', time: '18:54', tempC: 27.8, feelsLikeC: 27.2, humidity: 68, windMs: 3.8, rainProb30m: 0.1, uvIdx: 2.1, nowOrders: 31, surge: 1.7, minutesToSunset: 25, minutesToHighTide: 720 },
+  night:    { name: '야간 야식', time: '20:30', tempC: 24.0, feelsLikeC: 23.5, humidity: 75, windMs: 2.0, rainProb30m: 0.1, uvIdx: 0.0, nowOrders: 14, surge: 0.9, minutesToSunset: -66, minutesToHighTide: 840 },
+};
+
+/* ----- Stories per role × scenario =====
+   Each story = ordered list of step objects.
+   { id, label, render(ctx, root) }
+   ============================================== */
+const stories = {
+  customer: {
+    // 모든 시나리오 5단계로 통일 (QR 스캔 제거): home → join → checkout → live → arrived
+    heatwave: [
+      { id: 'home',     label: '메인 — 폭염 트리거 발견' },
+      { id: 'join',     label: '공동구매 합류' },
+      { id: 'checkout', label: '결제 (간편)' },
+      { id: 'live',     label: '배달 실시간 추적' },
+      { id: 'arrived',  label: '도착 + 별점' },
+    ],
+    morning:  [
+      { id: 'home',     label: '메인 — 아침 메뉴 + 자리 추천' },
+      { id: 'join',     label: '아침 셋 합류' },
+      { id: 'checkout', label: '결제' },
+      { id: 'live',     label: '배달 추적' },
+      { id: 'arrived',  label: '도착 + 별점' },
+    ],
+    normal:   [
+      { id: 'home',     label: '메인 — 평소 메뉴판' },
+      { id: 'join',     label: '단건 주문' },
+      { id: 'checkout', label: '결제' },
+      { id: 'live',     label: '배달 추적' },
+      { id: 'arrived',  label: '도착 + 별점' },
+    ],
+    tide:     [
+      { id: 'home',     label: '만조 알림' },
+      { id: 'join',     label: '예약 주문 합류' },
+      { id: 'checkout', label: '결제' },
+      { id: 'live',     label: '배달 대기' },
+      { id: 'arrived',  label: '자리 옮긴 후 수령' },
+    ],
+    heatup:   [
+      { id: 'home',     label: 'UV 경고 + 그늘 추천' },
+      { id: 'join',     label: '선크림 묶음 합류' },
+      { id: 'checkout', label: '결제' },
+      { id: 'live',     label: '배달 추적' },
+      { id: 'arrived',  label: '도착' },
+    ],
+    rain:     [
+      { id: 'home',     label: '소나기 5분 전 알림' },
+      { id: 'join',     label: '우산+컵라면 합류' },
+      { id: 'checkout', label: '결제' },
+      { id: 'live',     label: '비 오기 전 도착 카운트다운' },
+      { id: 'arrived',  label: '도착' },
+    ],
+    sunset:   [
+      { id: 'home',     label: '노을 카운트다운' },
+      { id: 'join',     label: '노을 패키지 합류' },
+      { id: 'checkout', label: '결제' },
+      { id: 'live',     label: '19:24 정각 도착 카운트' },
+      { id: 'arrived',  label: '노을과 함께 수령' },
+    ],
+    night:    [
+      { id: 'home',     label: '야간 메뉴' },
+      { id: 'join',     label: '야식 셋 합류' },
+      { id: 'checkout', label: '결제' },
+      { id: 'live',     label: '배달 대기' },
+      { id: 'arrived',  label: '도착' },
+    ],
+  },
+  merchant: {
+    // 모든 시나리오 5단계 통일: dash → queue → prep → policy → stats
+    heatwave: [
+      { id: 'dash',   label: '오늘 시작 대시보드' },
+      { id: 'queue',  label: '대기열 + 폭증 경고' },
+      { id: 'prep',   label: '준비 → 픽업 알림' },
+      { id: 'policy', label: '자동화 정책 점검' },
+      { id: 'stats',  label: '오늘 매출 집계' },
+    ],
+    morning:  [
+      { id: 'dash',   label: '오픈 직후 대시보드' },
+      { id: 'queue',  label: '첫 주문 대기열' },
+      { id: 'prep',   label: '준비' },
+      { id: 'policy', label: '오늘 정책 설정' },
+      { id: 'stats',  label: '오전 진행 현황' },
+    ],
+    normal:   [
+      { id: 'dash',   label: '오늘 시작' },
+      { id: 'queue',  label: '평소 대기열' },
+      { id: 'prep',   label: '준비' },
+      { id: 'policy', label: '정책' },
+      { id: 'stats',  label: '매출 현황' },
+    ],
+    tide:     [
+      { id: 'dash',   label: '만조 대비' },
+      { id: 'queue',  label: '예약 큐 + 만조 경고' },
+      { id: 'prep',   label: '예약 준비' },
+      { id: 'policy', label: '정책' },
+      { id: 'stats',  label: '오늘 매출' },
+    ],
+    heatup:   [
+      { id: 'dash',   label: 'UV 경보 대시보드' },
+      { id: 'queue',  label: '빙수 주문 증가' },
+      { id: 'prep',   label: '얼음 추가' },
+      { id: 'policy', label: '정책' },
+      { id: 'stats',  label: '오늘 매출' },
+    ],
+    rain:     [
+      { id: 'dash',   label: '소나기 대비' },
+      { id: 'queue',  label: '따뜻한 메뉴 자동 전환' },
+      { id: 'prep',   label: '준비' },
+      { id: 'policy', label: '정책' },
+      { id: 'stats',  label: '오늘 매출' },
+    ],
+    sunset:   [
+      { id: 'dash',   label: '노을 모드 시작' },
+      { id: 'queue',  label: '노을 패키지 31건' },
+      { id: 'prep',   label: '준비' },
+      { id: 'policy', label: '정책' },
+      { id: 'stats',  label: '오늘 매출' },
+    ],
+    night:    [
+      { id: 'dash',   label: '마감 임박 대시보드' },
+      { id: 'queue',  label: '마지막 주문' },
+      { id: 'prep',   label: '준비' },
+      { id: 'policy', label: '정책' },
+      { id: 'stats',  label: '마감 정산' },
+    ],
+  },
+  courier: {
+    // 모든 시나리오 5단계 통일: queue → pickup → route → near → delivered
+    heatwave: [
+      { id: 'queue',     label: '픽업 대기열 (묶음 4건)' },
+      { id: 'pickup',    label: '가게에서 픽업' },
+      { id: 'route',     label: '동선 + 묶음 배달' },
+      { id: 'near',      label: '파라솔 30m 앞' },
+      { id: 'delivered', label: '배달 완료' },
+    ],
+    morning:  [
+      { id: 'queue',     label: '첫 픽업 대기열' },
+      { id: 'pickup',    label: '가게 픽업' },
+      { id: 'route',     label: '동선' },
+      { id: 'near',      label: '파라솔 도착' },
+      { id: 'delivered', label: '완료' },
+    ],
+    normal:   [
+      { id: 'queue',     label: '대기열' },
+      { id: 'pickup',    label: '픽업' },
+      { id: 'route',     label: '동선' },
+      { id: 'near',      label: '도착' },
+      { id: 'delivered', label: '완료' },
+    ],
+    tide:     [
+      { id: 'queue',     label: '만조 전 우선순위' },
+      { id: 'pickup',    label: '픽업' },
+      { id: 'route',     label: '동선' },
+      { id: 'near',      label: '자리 옮긴 손님 찾기' },
+      { id: 'delivered', label: '완료' },
+    ],
+    heatup:   [
+      { id: 'queue',     label: '빙수 픽업 다수' },
+      { id: 'pickup',    label: '픽업' },
+      { id: 'route',     label: '동선' },
+      { id: 'near',      label: '도착' },
+      { id: 'delivered', label: '완료' },
+    ],
+    rain:     [
+      { id: 'queue',     label: '비 오기 전 빠른 배달' },
+      { id: 'pickup',    label: '픽업' },
+      { id: 'route',     label: '단축 동선' },
+      { id: 'near',      label: '도착' },
+      { id: 'delivered', label: '완료' },
+    ],
+    sunset:   [
+      { id: 'queue',     label: '노을 정각 동시 배달' },
+      { id: 'pickup',    label: '픽업' },
+      { id: 'route',     label: '동선' },
+      { id: 'near',      label: '19:24 정각 도착' },
+      { id: 'delivered', label: '완료' },
+    ],
+    night:    [
+      { id: 'queue',     label: '마지막 배달' },
+      { id: 'pickup',    label: '픽업' },
+      { id: 'route',     label: '동선' },
+      { id: 'near',      label: '도착' },
+      { id: 'delivered', label: '완료' },
+    ],
+  },
+};
+
+function currentStory() {
+  return stories[state.role][state.scenario] || stories[state.role]['normal'] || [];
+}
+function currentStep() {
+  const st = currentStory();
+  const i = Math.min(Math.max(state.storyStep, 1), st.length || 1) - 1;
+  return st[i] || { id: 'home', label: '메인' };
+}
+
+/* === Theme variant rendering decision ===
+   The story step ID drives which screen sub-view to render.
+   Each role × step combo maps to a render function. */
+
+function renderPhones() {
+  const ctx = scenarios[state.scenario];
+  ctx.scenario = state.scenario;
+  // small live updates: tick groupbuy members for the heatwave scenario
+  if (state.scenario === 'heatwave' || state.scenario === 'heatup') {
+    ctx.nowOrders = state.groupbuyMembers;
+  }
+  $('#ctx-summary').innerHTML = `<b>${ctx.time}</b> · ${ctx.tempC.toFixed(1)}°C 체감 <b>${ctx.feelsLikeC.toFixed(1)}°C</b> · 수요 <b>×${ctx.surge.toFixed(1)}</b>`;
+  $('#toolbar-summary').innerHTML = `시나리오 <b>${ctx.name}</b> · 역할 <b>${roleLabel()}</b> · 단계 <b>${state.storyStep}/${currentStory().length}</b>`;
+
+  const root = $('#phones');
+  root.innerHTML = '';
+  state.themes.forEach(th => root.appendChild(renderPhone(th, ctx)));
+  renderStoryBar(ctx);
+}
+
+function roleLabel() { return { customer: '손님', merchant: '사장님', courier: '배달원' }[state.role]; }
+
+function renderPhone(theme, ctx) {
+  const phone = el('div', `phone t-${theme} scenario-${ctx.scenario}`);
+  const screen = el('div', 'screen');
+  phone.appendChild(screen);
+
+  // statusbar — single root element (html() returns firstElementChild only)
+  screen.appendChild(html(`
+    <div class="statusbar">
+      <span>${ctx.time}</span>
+      <span class="icons"><span style="font-size:11px;">📶</span><span style="font-size:11px;">📡</span><span style="font-size:11px;font-weight:700;">87%</span>🔋</span>
+    </div>
+  `));
+  screen.appendChild(html(`<div class="home-indicator"></div>`));
+
+  const step = currentStep();
+  try {
+    if (state.role === 'customer') {
+      renderCustomerStep(screen, ctx, step, theme);
+    } else if (state.role === 'merchant') {
+      renderMerchantStep(screen, ctx, step, theme);
+    } else {
+      renderCourierStep(screen, ctx, step, theme);
+    }
+  } catch (err) {
+    const msg = (err && err.message) || String(err);
+    const stack = (err && err.stack) || '';
+    console.error('[parasol-v2] render error', { theme, role: state.role, step: step.id, err });
+    // Also surface to global red box at top of page
+    showGlobalError(`[${state.role}/${step.id}/${theme}] ${msg} :: ${stack.split('\n').slice(1,3).join(' | ')}`);
+    const errBody = el('div', 'screen-body');
+    errBody.innerHTML = `<div style="padding:20px;color:#dc2626;font-size:12px;line-height:1.6;">
+      <b>Render error</b><br>${step.id} / ${theme}<br><br>
+      <code style="font-size:10px;display:block;background:rgba(220,38,38,0.08);padding:8px;border-radius:6px;word-break:break-all;">${msg}</code>
+      <details style="margin-top:10px;font-size:10px;"><summary>stack</summary><pre style="white-space:pre-wrap;font-size:9px;">${stack.replace(/</g,'&lt;')}</pre></details>
+    </div>`;
+    screen.appendChild(errBody);
+  }
+
+  phone.appendChild(html(`<div class="screen-label">Theme ${theme} · ${step.label}</div>`));
+  return phone;
+}
+
+/* =========================================================================
+   CUSTOMER SCREENS
+   ========================================================================= */
+function renderCustomerStep(screen, ctx, step, theme) {
+  const body = el('div', 'screen-body');
+  screen.appendChild(body);
+
+  if (step.id === 'home') {
+    const dbg = (label, fn) => {
+      try { fn(); }
+      catch (e) {
+        const msg = `[home:${label}] ${(e && e.message) || e}`;
+        showGlobalError(msg);
+        body.appendChild(html(`<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px;margin:6px 0;font-size:11px;color:#b91c1c;">⚠️ ${label} 실패<br><code style="font-size:10px;word-break:break-all;">${(e && e.message) || e}</code></div>`));
+      }
+    };
+
+    dbg('top-id', () => body.appendChild(html(`
+      <div class="top-id">
+        <span class="dot"></span>
+        <span>해운대 파라솔 <span class="pid">#42</span> · 좌측 4번째 줄</span>
+      </div>
+    `)));
+
+    dbg('cstrip', () => body.appendChild(html(`
+      <div class="cstrip">
+        <div class="ck">옆 파라솔 합류<b>${ctx.nowOrders}곳</b></div>
+        <div class="ck">평균 도착<b>${avgEta(ctx)}분</b></div>
+        <div class="ck">UV<b>${ctx.uvIdx.toFixed(1)}${ctx.uvIdx>=8?' ⚠️':''}</b></div>
+        <div class="ck">${ctx.minutesToSunset > 0 ? '일몰까지' : '일몰 후'}<b>${Math.abs(ctx.minutesToSunset)}분</b></div>
+        <div class="ck">습도<b>${Math.round(ctx.humidity)}%</b></div>
+      </div>
+    `)));
+
+    dbg('hero', () => {
+      const feelsClass = ctx.feelsLikeC >= 33 ? 'hot' : ctx.feelsLikeC < 24 ? 'cool' : '';
+      body.appendChild(html(`
+        <div class="hero">
+          <div class="label">지금 해운대</div>
+          <div class="temp">${ctx.tempC.toFixed(1)}°</div>
+          <div class="feels">체감 <span class="${feelsClass}">${ctx.feelsLikeC.toFixed(1)}°C</span> · 다음 30분 ${(ctx.feelsLikeC + (ctx.scenario==='heatwave'?1.2:ctx.scenario==='heatup'?1.8:0)).toFixed(1)}°C 예상</div>
+          <div class="hero-meta">
+            <div>풍속<b>${ctx.windMs.toFixed(1)} m/s</b></div>
+            <div>강수확률<b>${Math.round(ctx.rainProb30m*100)}%</b></div>
+            <div>수요<b>×${ctx.surge.toFixed(1)}</b></div>
+          </div>
+        </div>
+      `));
+    });
+
+    dbg('trigger', () => {
+      const trig = activeTrigger(ctx);
+      if (trig) body.appendChild(html(`
+        <div class="trigger ${trig.kind}">
+          <div class="copy">
+            <div class="ti">${trig.label}</div>
+            <div class="body">${trig.body}</div>
+          </div>
+          <div class="cta">${trig.cta}</div>
+        </div>
+      `));
+    });
+
+    dbg('group-buy', () => {
+      if (showsGroupBuy(ctx)) body.appendChild(renderGroupBuy(ctx));
+    });
+
+    dbg('stores-header', () => body.appendChild(html(`
+      <div class="section-title">근처 가게 <span class="all">전체 보기</span></div>
+      <div class="filters">
+        ${customerFilters(ctx).map((f, i) => `<span class="chip ${i===0?'active':''}">${f}</span>`).join('')}
+      </div>
+    `)));
+
+    dbg('stores-list', () => {
+      nearbyStores(ctx).forEach(s => body.appendChild(html(`
+        <div class="store-card">
+          <div class="store-img">${s.e}</div>
+          <div class="store-meta"><div class="store-name">${s.name}</div><div class="store-info">${s.meta}</div></div>
+          <div class="store-eta">${s.eta}</div>
+        </div>
+      `)));
+    });
+  }
+
+  if (step.id === 'join') {
+    body.appendChild(html(`
+      <div class="top-id">
+        <span class="dot"></span>
+        <span>파라솔 <span class="pid">#42</span> · <b style="color:var(--accent-warm);">공동구매 합류 중</b></span>
+      </div>
+    `));
+    body.appendChild(renderGroupBuy(ctx, { showJoinBtn: true, expanded: true }));
+    body.appendChild(html(`
+      <div class="sheet">
+        <div class="h">합류 시 받는 것</div>
+        <div class="item-row"><span>팥빙수 ×1</span><span>₩ 4,200</span></div>
+        <div class="item-row"><span>바닐라 라떼 ×1</span><span>₩ 3,600</span></div>
+        <div class="item-row"><span>합류 할인 (−30%)</span><span style="color:var(--accent-warm);font-weight:800;">−₩ 2,340</span></div>
+        <div class="total"><span>나의 결제</span><span class="amt">₩ 5,460</span></div>
+        <div class="savings">💸 옆 파라솔과 같이 시켜서 <b>−₩ 2,340</b> 아꼈어요</div>
+      </div>
+      <button class="cta-btn">공동구매 합류하기</button>
+    `));
+  }
+
+  if (step.id === 'checkout') {
+    body.appendChild(html(`
+      <div class="top-id"><span class="dot"></span><span>결제 확인 · 파라솔 <span class="pid">#42</span></span></div>
+      <div class="sheet">
+        <div class="h">주문 내역</div>
+        ${checkoutItems(ctx).map(it => `<div class="item-row"><span>${it.name}</span><span>₩ ${it.price.toLocaleString()}</span></div>`).join('')}
+        <div class="item-row" style="color:var(--accent-warm);font-weight:800;">
+          <span>실시간 할인</span><span>−₩ ${discountFor(ctx).toLocaleString()}</span>
+        </div>
+        <div class="total"><span>총 결제</span><span class="amt">₩ ${totalFor(ctx).toLocaleString()}</span></div>
+        <div class="savings">${savingsCopy(ctx)}</div>
+      </div>
+      <div class="sheet" style="margin-top:8px;">
+        <div class="h">결제 수단</div>
+        <div class="item-row"><span>💳 토스 간편결제</span><span style="color:var(--accent-warm);font-weight:700;">기본</span></div>
+        <div class="item-row"><span>📱 카카오페이</span><span>변경</span></div>
+      </div>
+      <button class="cta-btn">₩ ${totalFor(ctx).toLocaleString()} 결제하기</button>
+    `));
+  }
+
+  if (step.id === 'live') {
+    const liveLabel = liveOrderLabel(ctx);
+    body.appendChild(html(`
+      <div class="top-id"><span class="dot"></span><span>주문 <b style="color:var(--accent-warm);">#A172</b> · 진행중</span></div>
+      <div class="live-order">
+        <div class="live-head">
+          <span class="tag">${liveLabel.tag}</span>
+          <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">${liveLabel.note}</span>
+        </div>
+        <div class="live-eta">${formatEta(state.liveEtaSec)}</div>
+        <div class="steps">
+          <span class="step done"></span>
+          <span class="step done"></span>
+          <span class="step done"></span>
+          <span class="step active"></span>
+          <span class="step"></span>
+        </div>
+        <div class="step-labels">
+          <span>접수</span><span>준비</span><span>픽업</span><span>이동중</span><span>완료</span>
+        </div>
+      </div>
+
+      <div class="courier-near">
+        <div class="ring">🛵</div>
+        <div class="body">
+          <div class="t">${liveLabel.courierTitle}</div>
+          <div class="n">박성훈 배달원 · ⭐ 4.9</div>
+        </div>
+        <div class="dist">30m</div>
+      </div>
+
+      <div class="sheet">
+        <div class="h">배달 메모</div>
+        <div class="item-row" style="font-weight:600;color:var(--ink-soft);">"파라솔 입구 노란 우산 옆에 두세요"</div>
+      </div>
+
+      <div class="cstrip" style="margin-top:14px;">
+        <div class="ck">옆 파라솔도 같이<b>${ctx.nowOrders}건</b></div>
+        <div class="ck">묶음 배달<b>4건/회</b></div>
+        <div class="ck">평균 단축<b>−6분</b></div>
+      </div>
+    `));
+  }
+
+  if (step.id === 'arrived') {
+    body.appendChild(html(`
+      <div class="top-id"><span class="dot"></span><span>주문 <b style="color:#22c55e;">완료</b> · 파라솔 #42</span></div>
+      <div class="rating-card">
+        <div class="big">잘 받으셨어요? 🎉</div>
+        <div class="sub">박성훈 배달원이 5분 32초 만에 도착했어요</div>
+        <div class="stars"><span class="on">⭐</span><span class="on">⭐</span><span class="on">⭐</span><span class="on">⭐</span><span class="on">⭐</span></div>
+        <div class="weather-adj">
+          ${weatherAdjCopy(ctx)}
+        </div>
+      </div>
+      <button class="cta-btn">⭐ 5점 남기기</button>
+      <div style="text-align:center;font-size:12px;color:var(--ink-soft);margin-top:14px;line-height:1.6;">
+        오늘 파라솔 #42에서 시킨 메뉴<br>
+        <b style="color:var(--ink);">팥빙수 1, 라떼 1</b><br>
+        2026년 8월 15일 14:35 도착
+      </div>
+    `));
+  }
+
+  screen.appendChild(renderBottomNav('customer', theme));
+}
+
+/* =========================================================================
+   MERCHANT SCREENS
+   ========================================================================= */
+function renderMerchantStep(screen, ctx, step, theme) {
+  const body = el('div', 'screen-body');
+  screen.appendChild(body);
+
+  body.appendChild(html(`
+    <div class="top-id">
+      <span class="dot"></span>
+      <span>해운대 빙수공방 · <span class="pid">${merchantHeader(ctx)}</span></span>
+    </div>
+  `));
+
+  if (step.id === 'dash' || step.id === 'surge') {
+    // "오늘 시작" 대시보드 — 사장님이 출근 직후 보는 한눈 요약
+    body.appendChild(html(`
+      <div class="hero" style="text-align:center;">
+        <div class="label">오늘 ${ctx.time} 기준</div>
+        <div class="temp" style="font-size:34px;">₩ 247,500</div>
+        <div class="feels">진행 <span class="hot">4건</span> · 누적 <b>32건</b> · 전주 동시간 대비 <span class="hot">+24%</span></div>
+        <div class="hero-meta">
+          <div>대기 주문<b>${Math.min(8, ctx.nowOrders)}건</b></div>
+          <div>10분 내 예상<b>+${Math.round((ctx.surge-1)*100)}%</b></div>
+          <div>재고<b style="color:#22c55e;">충분</b></div>
+        </div>
+      </div>
+      <div class="cstrip">
+        <div class="ck">평균 준비<b>3분 12초</b></div>
+        <div class="ck">평균 평점<b>⭐ 4.8</b></div>
+        <div class="ck">취소율<b>0.4%</b></div>
+        <div class="ck">묶음 비중<b>62%</b></div>
+      </div>
+      <div class="sheet">
+        <div class="h">🤖 AI 권장 조치 (지금)</div>
+        <div class="item-row"><span>🧊 얼음 미리 갈아두기</span><span style="color:var(--accent-warm);font-weight:700;">권장</span></div>
+        <div class="item-row"><span>🍧 빙수 베이스 6개 예비</span><span style="color:var(--accent-warm);font-weight:700;">권장</span></div>
+        <div class="item-row"><span>📣 묶음 주문 자동 안내</span><span style="color:#22c55e;font-weight:700;">ON</span></div>
+        <div class="item-row"><span>⛅ 다음 시간대 메뉴 자동 전환</span><span style="color:#22c55e;font-weight:700;">예약됨</span></div>
+      </div>
+      <div class="section-title">다가오는 시간대</div>
+      <div class="cstrip">
+        <div class="ck">15:00<b>+18% 예상</b></div>
+        <div class="ck">16:20<b>⛈ 비 알림</b></div>
+        <div class="ck">18:54<b>🌅 노을 모드</b></div>
+        <div class="ck">21:30<b>마감</b></div>
+      </div>
+    `));
+  }
+
+  if (step.id === 'queue') {
+    // 폭증 경고 배너 — 큐 상단에 통합
+    const surgeTrig = merchantSurgeTrigger(ctx);
+    body.appendChild(html(`
+      <div class="trigger ${surgeTrig.kind}">
+        <div class="copy"><div class="ti">${surgeTrig.label}</div><div class="body">${surgeTrig.body}</div></div>
+        <div class="cta">${surgeTrig.cta}</div>
+      </div>
+      <div class="section-title">주문 대기열 <span class="all">${merchantOrders(ctx).length}건</span></div>
+    `));
+    const orders = merchantOrders(ctx);
+    orders.forEach(o => body.appendChild(html(`
+      <div class="order-row">
+        <div class="or-head"><span class="or-id">${o.id}</span><span class="or-elapsed">⏱ ${o.elapsed}</span></div>
+        <div class="or-items">${o.items}</div>
+        <div class="or-loc">📍 ${o.loc}</div>
+        <div class="or-stage">
+          <span class="${o.stage>=1?'done':''}"></span>
+          <span class="${o.stage>=2?'done':''}"></span>
+          <span class="${o.stage>=3?'done':''}"></span>
+          <span class="${o.stage>=4?'done':''}"></span>
+        </div>
+      </div>
+    `)));
+  }
+
+  if (step.id === 'prep') {
+    body.appendChild(html(`<div class="section-title">현재 준비 중</div>`));
+    body.appendChild(html(`
+      <div class="order-row" style="border-left-color:#22c55e;">
+        <div class="or-head"><span class="or-id">#A172</span><span class="or-elapsed" style="color:#22c55e;">⏱ 2:14 (목표 3:30)</span></div>
+        <div class="or-items">팥빙수 ×2, 바닐라 라떼</div>
+        <div class="or-loc">📍 파라솔 #42 · 묶음 4건 중 1번째</div>
+        <div class="or-stage">
+          <span class="done"></span><span class="done"></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="sheet">
+        <div class="h">상태 변경</div>
+        <div class="item-row"><span>✅ 접수</span><span>완료</span></div>
+        <div class="item-row"><span>🥄 준비 시작</span><span>완료</span></div>
+        <div class="item-row" style="font-weight:800;color:var(--accent-warm);"><span>📦 픽업 준비됨</span><span>탭</span></div>
+        <div class="item-row" style="color:var(--ink-soft);"><span>🛵 배달중</span><span>대기</span></div>
+      </div>
+      <button class="cta-btn">📦 픽업 준비됨 알리기</button>
+    `));
+  }
+
+  if (step.id === 'policy') {
+    body.appendChild(html(`
+      <div class="section-title">자동화 허용 범위</div>
+      <div class="policy-card">
+        <div class="policy-row"><span>폭염 부스팅 (−최대 30%)</span><div class="toggle on"></div></div>
+        <div class="policy-row"><span>노을 패키지 자동 추천</span><div class="toggle on"></div></div>
+        <div class="policy-row"><span>소나기 묶음주문</span><div class="toggle on"></div></div>
+        <div class="policy-row"><span>UV 경보 시 그늘 메뉴 우선 노출</span><div class="toggle on"></div></div>
+        <div class="policy-row"><span>만조 이전 예약</span><div class="toggle"></div></div>
+        <div class="policy-row" style="border-top:1px solid var(--line); padding-top:12px; margin-top:4px;">
+          <span style="color:var(--ink-soft);">최저 할인 한도</span>
+          <b style="font-variant-numeric:tabular-nums;">원가의 70%</b>
+        </div>
+        <div class="policy-row">
+          <span style="color:var(--ink-soft);">시간당 자동 푸시</span>
+          <b>최대 3회</b>
+        </div>
+      </div>
+    `));
+  }
+
+  if (step.id === 'stats') {
+    body.appendChild(html(`
+      <div class="section-title">오늘 매출 · ${ctx.time} 기준</div>
+      <div class="hero" style="text-align:center;padding:24px 18px;">
+        <div class="label">총 매출</div>
+        <div class="temp" style="font-size:42px;">₩ 1,247,800</div>
+        <div class="feels" style="margin-top:6px;">전주 동시간 대비 <span class="hot">+38%</span> · 다이나믹 부스팅 기여 <b>+19%</b></div>
+        <div class="hero-meta">
+          <div>주문 수<b>147건</b></div>
+          <div>평균 단가<b>₩ 8,489</b></div>
+          <div>공동구매 비중<b>62%</b></div>
+        </div>
+      </div>
+      <div class="cstrip">
+        <div class="ck">폭염 부스팅<b>+19%</b></div>
+        <div class="ck">소나기 묶음<b>+8%</b></div>
+        <div class="ck">노을 패키지<b>+12%</b></div>
+        <div class="ck">고객 만족<b>4.78</b></div>
+      </div>
+    `));
+  }
+
+  screen.appendChild(renderBottomNav('merchant', theme));
+}
+
+/* =========================================================================
+   COURIER SCREENS
+   ========================================================================= */
+function renderCourierStep(screen, ctx, step, theme) {
+  const body = el('div', 'screen-body');
+  screen.appendChild(body);
+
+  body.appendChild(html(`
+    <div class="top-id">
+      <span class="dot"></span>
+      <span>박성훈 배달원 · <span class="pid">${courierHeader(ctx)}</span></span>
+    </div>
+  `));
+
+  if (step.id === 'queue') {
+    // 지금 해야 할 일 명확히
+    body.appendChild(html(`
+      <div class="action-hero">
+        <div class="action-hero-tag">지금 해야 할 일</div>
+        <div class="action-hero-title">📦 묶음 4건 받기 수락</div>
+        <div class="action-hero-sub">파라솔 #42 인근 4건 → 한 번 픽업 + 한 번 배달<br>혼자 4번 가는 것보다 <b>+₩ 4,200 보너스</b></div>
+        <div class="bundle-viz">
+          <div class="bv-row"><span class="bv-icon">🏪</span><span>해운대 빙수공방</span><span class="bv-arrow">→</span><span class="bv-count">4건</span></div>
+          <div class="bv-row"><span class="bv-icon">🛵</span><span>박성훈 배달원 (나)</span><span class="bv-arrow">→</span><span class="bv-count">묶음 1회</span></div>
+          <div class="bv-row"><span class="bv-icon">🏖️</span><span>파라솔 #41~#44</span><span class="bv-arrow">→</span><span class="bv-count">280m</span></div>
+        </div>
+        <button class="cta-btn primary-cta">✅ 수락 · 픽업 시작</button>
+      </div>
+      <div class="section-title">또는 단건 픽업 (3건)</div>
+    `));
+    courierQueue(ctx).forEach(q => body.appendChild(html(`
+      <div class="pickup-row">
+        <div class="pickup-num">${q.n}</div>
+        <div class="pickup-meta"><div class="pickup-from">${q.from}</div><div class="pickup-to">→ ${q.to}</div></div>
+        <div class="pickup-eta">${q.dist}<b>${q.eta}</b></div>
+      </div>
+    `)));
+  }
+
+  if (step.id === 'pickup') {
+    body.appendChild(html(`
+      <div class="action-hero">
+        <div class="action-hero-tag">지금 해야 할 일</div>
+        <div class="action-hero-title">🏪 가게에서 4건 받기</div>
+        <div class="action-hero-sub">해운대 빙수공방 · 90m · 도착까지 <b>2분</b></div>
+      </div>
+      <div class="route-tracker">
+        <div class="rt-step done"><div class="rt-num">✓</div><div class="rt-label">배차 수락<div class="rt-time">14:28</div></div></div>
+        <div class="rt-step done"><div class="rt-num">✓</div><div class="rt-label">가게로 이동<div class="rt-time">14:29</div></div></div>
+        <div class="rt-step now"><div class="rt-num">●</div><div class="rt-label">가게 도착 임박<div class="rt-time">지금</div></div></div>
+        <div class="rt-step"><div class="rt-num">3</div><div class="rt-label">4건 픽업<div class="rt-time">~14:32</div></div></div>
+        <div class="rt-step"><div class="rt-num">4</div><div class="rt-label">묶음 배달<div class="rt-time">~14:38</div></div></div>
+      </div>
+      <div class="section-title">받을 묶음 (4건)</div>
+      <div class="bundle-box">
+        ${[
+          { id: '#A172', to: '#42', items: '팥빙수 2, 라떼' },
+          { id: '#A173', to: '#44', items: '망고빙수 1' },
+          { id: '#A174', to: '#41', items: '아메 3' },
+          { id: '#A175', to: '#43', items: '딸기빙수 1' },
+        ].map(o => `
+          <div class="bundle-item">
+            <div class="bundle-tag">${o.id}</div>
+            <div class="bundle-body"><b>파라솔 ${o.to}</b><span>${o.items}</span></div>
+            <div class="bundle-check">✓</div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="cta-btn primary-cta">📦 4건 모두 받았어요</button>
+    `));
+  }
+
+  if (step.id === 'route') {
+    body.appendChild(html(`
+      <div class="action-hero">
+        <div class="action-hero-tag">지금 해야 할 일</div>
+        <div class="action-hero-title">🛵 다음 도착지: 파라솔 #41</div>
+        <div class="action-hero-sub">60m 앞 · 약 2분 · 아메리카노 3잔 전달</div>
+      </div>
+      <div class="map">
+        <div class="map-bg"></div>
+        <svg class="map-route" viewBox="0 0 358 200" preserveAspectRatio="none">
+          <path d="M 30 160 Q 80 100, 130 90 T 220 70 T 330 60" stroke="rgba(34,197,94,0.6)" stroke-width="3" fill="none"/>
+          <path d="M 30 160 Q 60 130, 90 110" stroke="#22c55e" stroke-width="4" fill="none"/>
+        </svg>
+        <div class="map-pin me" style="left:8%;top:80%;">🛵</div>
+        <div class="map-pin" style="left:30%;top:55%;">1️⃣</div>
+        <div class="map-pin" style="left:48%;top:42%;">2️⃣</div>
+        <div class="map-pin" style="left:70%;top:34%;">3️⃣</div>
+        <div class="map-pin" style="left:92%;top:30%;">4️⃣</div>
+      </div>
+      <div class="bundle-progress">
+        <div class="bp-label">묶음 진행률</div>
+        <div class="bp-dots">
+          <span class="bp-dot now">1</span>
+          <span class="bp-line"></span>
+          <span class="bp-dot">2</span>
+          <span class="bp-line"></span>
+          <span class="bp-dot">3</span>
+          <span class="bp-line"></span>
+          <span class="bp-dot">4</span>
+        </div>
+        <div class="bp-meta">0/4 완료 · 예상 <b>8분</b> 후 묶음 끝</div>
+      </div>
+      <div class="section-title">동선 (순서대로)</div>
+      ${[
+        { n: 1, to: '파라솔 #41', dist: '60m', items: '아메 ×3', state: 'now' },
+        { n: 2, to: '파라솔 #42', dist: '110m', items: '팥빙수 ×2 + 라떼', state: '' },
+        { n: 3, to: '파라솔 #43', dist: '140m', items: '딸기빙수', state: '' },
+        { n: 4, to: '파라솔 #44', dist: '180m', items: '망고빙수', state: '' },
+      ].map(q => `
+        <div class="pickup-row ${q.state}">
+          <div class="pickup-num">${q.n}</div>
+          <div class="pickup-meta"><div class="pickup-from">${q.to}</div><div class="pickup-to">${q.items}</div></div>
+          <div class="pickup-eta">${q.dist}<b>${q.n*2}분</b></div>
+        </div>
+      `).join('')}
+    `));
+  }
+
+  if (step.id === 'near') {
+    body.appendChild(html(`
+      <div class="action-hero">
+        <div class="action-hero-tag">지금 해야 할 일</div>
+        <div class="action-hero-title">📍 파라솔 #42에 도착</div>
+        <div class="action-hero-sub">30m 앞 · 손님 폰에 자동 알림 전송됨</div>
+      </div>
+      <div class="customer-ping">
+        <div class="cp-phone">
+          <div class="cp-screen">
+            <div class="cp-tag">🛵 LIVE</div>
+            <div class="cp-msg">박성훈 배달원이<br><b>30m 앞</b>에 있어요</div>
+            <div class="cp-meta">팥빙수 ×2 · 라떼 · 곧 도착</div>
+          </div>
+        </div>
+        <div class="cp-arrow">→</div>
+        <div class="cp-target">
+          <div class="cp-target-icon">🏖️</div>
+          <div class="cp-target-name">박성훈 손님<br>파라솔 #42</div>
+        </div>
+      </div>
+      <div class="map" style="height:160px;">
+        <div class="map-bg"></div>
+        <svg class="map-route" viewBox="0 0 358 200" preserveAspectRatio="none">
+          <path d="M 60 130 Q 140 100, 220 90 T 300 70" stroke="rgba(34,197,94,0.7)" stroke-width="4" fill="none"/>
+        </svg>
+        <div class="map-pin me" style="left:18%;top:65%;">🛵</div>
+        <div class="map-pin" style="left:82%;top:35%;">🏖️</div>
+      </div>
+      <div class="sheet">
+        <div class="h">손님 메모</div>
+        <div class="item-row" style="font-weight:600;color:var(--ink-soft);">"파라솔 입구 노란 우산 옆에 두세요"</div>
+      </div>
+      <button class="cta-btn primary-cta">✅ 손님에게 전달 완료</button>
+    `));
+  }
+
+  if (step.id === 'delivered') {
+    body.appendChild(html(`
+      <div class="action-hero" style="text-align:center;">
+        <div class="action-hero-tag" style="color:#22c55e;">완료</div>
+        <div class="action-hero-title" style="font-size:32px;">✅ 배달 완료</div>
+        <div class="action-hero-sub">파라솔 #42 · #A172 · 5분 32초 · ⭐ 5점</div>
+      </div>
+      <div class="earn-card">
+        <div class="ec-row">
+          <span>이번 배달 기본</span><b>₩ 3,800</b>
+        </div>
+        <div class="ec-row">
+          <span>묶음 보너스 (4건)</span><b style="color:#22c55e;">+₩ 4,200</b>
+        </div>
+        <div class="ec-row">
+          <span>폭염 가산 (체감 33°C+)</span><b style="color:#22c55e;">+₩ 500</b>
+        </div>
+        <div class="ec-total">
+          <span>이번 받음</span><b>₩ 8,500</b>
+        </div>
+        <div class="ec-meta">오늘 누계 <b>₩ 87,400</b> · 12건 · 평균 <b>₩ 7,283</b></div>
+      </div>
+      <div class="section-title">묶음 남은 건</div>
+      <div class="bundle-box">
+        <div class="bundle-item done"><div class="bundle-tag">#A172</div><div class="bundle-body"><b>#42</b><span>완료</span></div><div class="bundle-check done">✓</div></div>
+        <div class="bundle-item now"><div class="bundle-tag">#A173</div><div class="bundle-body"><b>#44</b><span>다음 차례</span></div><div class="bundle-check">●</div></div>
+        <div class="bundle-item"><div class="bundle-tag">#A174</div><div class="bundle-body"><b>#41</b><span>대기</span></div><div class="bundle-check">3</div></div>
+        <div class="bundle-item"><div class="bundle-tag">#A175</div><div class="bundle-body"><b>#43</b><span>대기</span></div><div class="bundle-check">4</div></div>
+      </div>
+      <button class="cta-btn primary-cta">▶ 다음 (#A173 · 파라솔 #44)</button>
+      <div class="section-title">다음 픽업</div>
+      <div class="pickup-row">
+        <div class="pickup-num">1</div>
+        <div class="pickup-meta"><div class="pickup-from">비치 커피로스터스</div><div class="pickup-to">→ 파라솔 #28</div></div>
+        <div class="pickup-eta">180m<b>9분</b></div>
+      </div>
+      <button class="cta-btn">▶ 다음 배달 시작</button>
+    `));
+  }
+
+  screen.appendChild(renderBottomNav('courier', theme));
+}
+
+/* =========================================================================
+   SHARED HELPERS
+   ========================================================================= */
+function activeTrigger(ctx) {
+  if (ctx.scenario === 'heatwave' || ctx.feelsLikeC >= 33) return { kind: 'heat', label: '폭염 부스팅', body: `지금 체감 ${ctx.feelsLikeC.toFixed(1)}°C · 옆 파라솔 ${ctx.nowOrders}곳 공동주문 중`, cta: '–30% 합류' };
+  if (ctx.scenario === 'heatup')   return { kind: 'heatup', label: 'UV 경보', body: `자외선 ${ctx.uvIdx.toFixed(1)} 매우 강함 · 선크림+그늘 메뉴 묶음`, cta: '함께' };
+  if (ctx.scenario === 'sunset')   return { kind: 'sunset', label: '노을 모드', body: `${ctx.minutesToSunset}분 후 노을 · 19:24 정각 배달 패키지`, cta: '한정 12셋' };
+  if (ctx.scenario === 'rain')     return { kind: 'rain', label: '5분 내 소나기', body: `강수확률 ${Math.round(ctx.rainProb30m*100)}% · 우산+컵라면 묶음`, cta: '–25%' };
+  if (ctx.scenario === 'tide')     return { kind: 'tide', label: '만조 1시간 전', body: `${ctx.minutesToHighTide}분 후 만조 · 자리 옮기시면서 미리 받기`, cta: '예약' };
+  if (ctx.scenario === 'morning')  return { kind: 'morning', label: '아침 모드', body: '햇빛 아직 부드러움 · 따뜻한 라떼 + 아침 김밥 추천', cta: '아침 셋' };
+  if (ctx.scenario === 'night')    return { kind: 'night', label: '야간 모드', body: '21:30 마지막 주문 · 야식 메뉴 한정 운영', cta: '주문' };
+  return null;
+}
+
+function showsGroupBuy(ctx) {
+  return ['heatwave','heatup','sunset','rain'].includes(ctx.scenario);
+}
+
+function renderGroupBuy(ctx, opts={}) {
+  let item, was, now, delta, timer, goal;
+  if (ctx.scenario === 'heatwave') { item = '팥빙수 · 바닐라 라떼 (2인 셋)'; was = 15000; now = 10500; delta = '−30%'; timer = '⏱ 03:42 남음'; goal = 60; }
+  else if (ctx.scenario === 'heatup') { item = '선크림 + 아메리카노 (그늘 셋)'; was = 12000; now = 9000; delta = '−25%'; timer = '⏱ 06:12 남음'; goal = 40; }
+  else if (ctx.scenario === 'sunset') { item = '시원한 맥주 2 + 어묵 + 모듬튀김'; was = 24000; now = 18900; delta = '−21%'; timer = `⏱ ${ctx.minutesToSunset}분 후 정각 도착`; goal = 50; }
+  else if (ctx.scenario === 'rain')   { item = '따뜻한 컵라면 2 + 김밥 + 우산 1'; was = 14800; now = 11200; delta = '−24%'; timer = '⏱ 5분 내 출발'; goal = 30; }
+  else { item = '음료 2인 셋'; was = 10000; now = 8000; delta = '−20%'; timer = '⏱ 10분'; goal = 20; }
+  const filled = Math.min(100, (ctx.nowOrders / goal) * 100);
+  return html(`
+    <div class="groupbuy">
+      <div class="gb-head">
+        <span class="gbt">${ctx.scenario==='sunset'?'노을 패키지':ctx.scenario==='rain'?'소나기 묶음':ctx.scenario==='heatup'?'UV 묶음':'옆 파라솔 공동구매'}</span>
+        <span class="timer">${timer}</span>
+      </div>
+      <div class="gb-item">${item}</div>
+      <div class="gb-price">
+        <span class="now" data-gb-now>₩ ${now.toLocaleString()}</span>
+        <span class="was">₩ ${was.toLocaleString()}</span>
+        <span class="delta">${delta}</span>
+      </div>
+      <div class="progress"><div class="fill" style="width:${filled}%"></div></div>
+      <div class="progress-meta">
+        <span><b data-gb-count>${ctx.nowOrders}</b>명 합류</span>
+        <span>${goal}명까지 ${delta}</span>
+      </div>
+      <div class="avatars">
+        <span>김</span><span>이</span><span>박</span><span>최</span>
+        <span class="more">+${Math.max(0, ctx.nowOrders-4)}</span>
+      </div>
+      ${opts.expanded ? `<div style="margin-top:14px;font-size:12px;color:var(--ink-soft);line-height:1.5;border-top:1px solid var(--line);padding-top:12px;">
+        같은 시간 같은 메뉴를 시키는 옆 파라솔과 자동으로 묶입니다. 묶일수록 가격 ↓, 배달원 한 번에 →, 도착 ↑.
+      </div>`:''}
+    </div>
+  `);
+}
+
+function customerFilters(ctx) {
+  const base = ['🥤 음료', '🍱 식사', '🍧 빙수', '⏱ 10분 내'];
+  if (ctx.scenario === 'sunset') return ['🍺 맥주', '🍷 와인', '🌅 노을 셋', '🍤 안주'];
+  if (ctx.scenario === 'rain')   return ['☕ 따뜻한', '🍜 컵라면', '☔ 우산 포함', '🛍 묶음'];
+  if (ctx.scenario === 'morning')return ['🥐 아침', '☕ 라떼', '🍙 김밥', '⏱ 5분 내'];
+  if (ctx.scenario === 'night')  return ['🍢 야식', '🍻 맥주', '🌃 한정', '⏱ 마감 임박'];
+  if (ctx.scenario === 'heatup' || ctx.scenario === 'heatwave') return ['🍧 빙수', '🥤 차가운', '🧴 선크림', '⛱ 그늘 자리'];
+  return base;
+}
+
+function nearbyStores(ctx) {
+  const base = [
+    { e: '🍧', name: '해운대 빙수공방', meta: '도보 90m · ⭐ 4.8 · 빙수 / 음료', eta: '8분' },
+    { e: '🍜', name: '미포 김밥분식', meta: '도보 140m · ⭐ 4.6 · 식사 / 야식', eta: '14분' },
+    { e: '🥤', name: '비치 커피로스터스', meta: '도보 60m · ⭐ 4.9 · 커피 / 디저트', eta: '6분' },
+  ];
+  if (ctx.scenario === 'sunset')   return [
+    { e: '🍺', name: '해운대 비치 비어', meta: '도보 110m · ⭐ 4.7 · 노을 셋 운영중', eta: '7분' },
+    { e: '🍤', name: '미포 해산물포차', meta: '도보 220m · ⭐ 4.8 · 안주 전문', eta: '12분' },
+    { e: '🥤', name: '비치 커피로스터스', meta: '도보 60m · ⭐ 4.9 · 노을 라떼', eta: '6분' },
+  ];
+  if (ctx.scenario === 'rain') return [
+    { e: '🏪', name: '편의점 GS25 미포점', meta: '도보 70m · 우산·돗자리·간식', eta: '4분' },
+    { e: '🍜', name: '미포 김밥분식', meta: '도보 140m · ⭐ 4.6 · 따뜻한 메뉴', eta: '10분' },
+    { e: '☕', name: '비치 커피로스터스', meta: '도보 60m · ⭐ 4.9 · 따뜻한 라떼', eta: '6분' },
+  ];
+  if (ctx.scenario === 'night') return [
+    { e: '🍢', name: '해운대 야식포차', meta: '도보 100m · ⭐ 4.5 · 야식', eta: '11분' },
+    { e: '🍺', name: '해운대 비치 비어', meta: '도보 110m · ⭐ 4.7 · 마지막 주문', eta: '7분' },
+  ];
+  return base;
+}
+
+function avgEta(ctx) {
+  if (ctx.scenario === 'heatwave') return 8;
+  if (ctx.scenario === 'rain')     return 6;
+  if (ctx.scenario === 'sunset')   return 9;
+  if (ctx.scenario === 'tide')     return 12;
+  return 9;
+}
+
+function checkoutItems(ctx) {
+  if (ctx.scenario === 'heatwave') return [
+    { name: '팥빙수 ×1', price: 4200 },
+    { name: '바닐라 라떼 ×1', price: 3600 },
+    { name: '공동구매 합류', price: 0 },
+  ];
+  if (ctx.scenario === 'sunset') return [
+    { name: '시원한 맥주 ×2', price: 9000 },
+    { name: '어묵 + 모듬튀김 셋', price: 9900 },
+  ];
+  if (ctx.scenario === 'rain') return [
+    { name: '컵라면 ×2', price: 5600 },
+    { name: '김밥 1줄', price: 4200 },
+    { name: '우산 1', price: 1400 },
+  ];
+  if (ctx.scenario === 'morning') return [
+    { name: '바닐라 라떼 ×1', price: 3600 },
+    { name: '아침 김밥 셋', price: 5500 },
+  ];
+  if (ctx.scenario === 'night') return [
+    { name: '닭강정 ×1', price: 9000 },
+    { name: '맥주 ×2', price: 6000 },
+  ];
+  if (ctx.scenario === 'heatup') return [
+    { name: '아이스 아메리카노 ×2', price: 7000 },
+    { name: '선크림 50ml', price: 5000 },
+  ];
+  if (ctx.scenario === 'tide') return [
+    { name: '아이스 라떼 ×2', price: 7200 },
+    { name: '쿠키 1봉', price: 2800 },
+  ];
+  return [{ name: '아이스 아메리카노', price: 3500 }];
+}
+
+function discountFor(ctx) {
+  if (ctx.scenario === 'heatwave') return 2340;
+  if (ctx.scenario === 'sunset')   return 3990;
+  if (ctx.scenario === 'rain')     return 2810;
+  if (ctx.scenario === 'heatup')   return 3000;
+  return 0;
+}
+function totalFor(ctx) {
+  return checkoutItems(ctx).reduce((s, it) => s + it.price, 0) - discountFor(ctx);
+}
+function savingsCopy(ctx) {
+  if (ctx.scenario === 'heatwave') return `💸 옆 파라솔 ${ctx.nowOrders}곳과 같이 시켜서 <b>−₩ 2,340</b> 아꼈어요`;
+  if (ctx.scenario === 'sunset')   return `🌅 노을 패키지 묶음으로 <b>−₩ 3,990</b> 아꼈어요`;
+  if (ctx.scenario === 'rain')     return `☔ 우산+따뜻한 메뉴 묶음으로 <b>−₩ 2,810</b> 아꼈어요`;
+  if (ctx.scenario === 'heatup')   return `🧴 선크림 묶음으로 <b>−₩ 3,000</b> 아꼈어요`;
+  return `🏖️ 파라솔 번호만으로 결제까지 — 위치 입력 0회`;
+}
+
+function liveOrderLabel(ctx) {
+  if (ctx.scenario === 'heatwave') return { tag: '묶음 배달중', note: '#A172 + 3건 함께', courierTitle: '4건 묶음 배달중 · 곧 도착' };
+  if (ctx.scenario === 'sunset')   return { tag: '정각 도착 예정', note: '19:24 ±30초 목표', courierTitle: '노을 정각 도착 모드' };
+  if (ctx.scenario === 'rain')     return { tag: '비 오기 전 도착', note: '4분 23초 안에', courierTitle: '단축 경로로 진행중' };
+  return { tag: '배달중', note: '곧 도착', courierTitle: '배달중' };
+}
+
+function formatEta(sec) {
+  const m = Math.floor(sec/60);
+  const s = sec % 60;
+  return `<span style="font-variant-numeric:tabular-nums;">${m}<span class="unit">분</span> ${s.toString().padStart(2,'0')}<span class="unit">초</span></span>`;
+}
+
+function weatherAdjCopy(ctx) {
+  if (ctx.scenario === 'rain')    return `🌧 <b>날씨 보정</b>: 강수확률 78%로 배달 지연이 예상되어 별점 산정 시 시간 페널티 50% 감면됐어요.`;
+  if (ctx.scenario === 'heatwave')return `☀️ <b>폭염 보정</b>: 33°C 이상에서는 도착 ±2분이 정상 범위로 처리돼요. 박성훈 배달원의 평점이 이번에 영향받지 않습니다.`;
+  if (ctx.scenario === 'sunset')  return `🌅 <b>정각 보정</b>: 노을 패키지는 19:24 ±1분에 도착 시 만점, 박성훈님은 +12초 만에 도착했어요.`;
+  return `🌤 <b>날씨 보정</b>: 오늘은 평소 조건 — 별점은 그대로 반영됩니다.`;
+}
+
+function merchantHeader(ctx) {
+  if (ctx.scenario === 'heatwave') return '진행 4건 · 폭증 모드';
+  if (ctx.scenario === 'sunset')   return '진행 7건 · 노을 모드';
+  if (ctx.scenario === 'rain')     return '진행 3건 · 비 대응';
+  if (ctx.scenario === 'morning')  return '오픈 직후';
+  if (ctx.scenario === 'night')    return '마감 임박';
+  return '평소 운영';
+}
+function merchantSurgeTrigger(ctx) {
+  if (ctx.scenario === 'heatwave') return { kind: 'heat', label: '실시간 수요 폭증', body: `체감 ${ctx.feelsLikeC.toFixed(1)}°C · 10분 내 주문 +${Math.round((ctx.surge-1)*100)}% 예상`, cta: '얼음 준비' };
+  if (ctx.scenario === 'rain')     return { kind: 'rain', label: '5분 내 소나기', body: '따뜻한 메뉴 자동 전환 · 컵라면 노출 ON', cta: '자동 적용' };
+  if (ctx.scenario === 'sunset')   return { kind: 'sunset', label: `노을 D-${ctx.minutesToSunset}`, body: '노을 패키지 자동 추천 활성 · 31건 대기', cta: '준비 시작' };
+  if (ctx.scenario === 'heatup')   return { kind: 'heatup', label: 'UV 경보', body: `자외선 ${ctx.uvIdx.toFixed(1)} 매우 강함 · 그늘 메뉴 우선 노출`, cta: '적용' };
+  if (ctx.scenario === 'tide')     return { kind: 'tide', label: '만조 임박', body: '자리 이동 손님 다수 · 예약 주문 늘어남', cta: '대기' };
+  return { kind: 'heat', label: '평소 운영', body: '특별 신호 없음', cta: '확인' };
+}
+function merchantOrders(ctx) {
+  if (ctx.scenario === 'heatwave') return [
+    { id: '#A172', items: '팥빙수 ×2, 바닐라 라떼', elapsed: '02:14', loc: '파라솔 #42 · 묶음 4건 중 1번', stage: 2 },
+    { id: '#A171', items: '망고빙수 ×1', elapsed: '03:08', loc: '파라솔 #28', stage: 2 },
+    { id: '#A170', items: '아이스 아메리카노 ×4', elapsed: '04:42', loc: '파라솔 #51', stage: 3 },
+    { id: '#A169', items: '딸기빙수 ×1, 라떼 ×2', elapsed: '05:30', loc: '파라솔 #19', stage: 3 },
+  ];
+  if (ctx.scenario === 'sunset') return [
+    { id: '#B021', items: '맥주 4 + 모듬튀김 (노을셋)', elapsed: '01:52', loc: '파라솔 #42 · 19:24 정각 도착', stage: 2 },
+    { id: '#B020', items: '와인 1 + 치즈플레이트', elapsed: '02:30', loc: '파라솔 #61', stage: 2 },
+    { id: '#B019', items: '맥주 2 + 어묵 + 김밥', elapsed: '03:08', loc: '파라솔 #14', stage: 3 },
+  ];
+  if (ctx.scenario === 'rain') return [
+    { id: '#C012', items: '컵라면 ×2, 김밥, 우산', elapsed: '01:20', loc: '파라솔 #42 · 비 오기 전', stage: 2 },
+    { id: '#C011', items: '따뜻한 라떼 ×2', elapsed: '02:48', loc: '파라솔 #28', stage: 2 },
+  ];
+  return [
+    { id: '#A165', items: '아이스 아메리카노 ×2', elapsed: '01:20', loc: '파라솔 #42', stage: 1 },
+    { id: '#A164', items: '라떼 ×1, 쿠키 ×2', elapsed: '02:48', loc: '파라솔 #28', stage: 2 },
+  ];
+}
+
+function courierHeader(ctx) {
+  if (ctx.scenario === 'heatwave') return '4건 묶음 배달중';
+  if (ctx.scenario === 'sunset')   return '노을 정각 배달중';
+  if (ctx.scenario === 'rain')     return '단축 경로 모드';
+  return '배달 진행중';
+}
+function courierQueue(ctx) {
+  if (ctx.scenario === 'heatwave') return [
+    { n: '1', from: '해운대 빙수공방', to: '파라솔 #42 → 4건 묶음', eta: '6분', dist: '92m' },
+    { n: '2', from: '비치 커피로스터스', to: '파라솔 #28', eta: '9분', dist: '180m' },
+    { n: '3', from: '미포 김밥분식', to: '파라솔 #19', eta: '13분', dist: '260m' },
+  ];
+  if (ctx.scenario === 'sunset') return [
+    { n: '1', from: '해운대 비치 비어', to: '파라솔 #42 · 19:24 정각', eta: '6분', dist: '110m' },
+    { n: '2', from: '미포 해산물포차', to: '파라솔 #61', eta: '11분', dist: '220m' },
+  ];
+  if (ctx.scenario === 'rain') return [
+    { n: '1', from: '편의점 GS25', to: '파라솔 #42 → 우산+컵라면', eta: '4분', dist: '70m' },
+    { n: '2', from: '미포 김밥분식', to: '파라솔 #61 → 따뜻한 메뉴', eta: '10분', dist: '220m' },
+  ];
+  return [
+    { n: '1', from: '해운대 빙수공방', to: '파라솔 #42', eta: '7분', dist: '92m' },
+  ];
+}
+
+function renderBottomNav(role, theme) {
+  let items = [];
+  if (role === 'customer') items = [['🏖️','홈',true],['🔥','지금',false],['🧾','주문',false],['👤','내정보',false]];
+  if (role === 'merchant') items = [['📋','주문',true],['📊','수요',false],['⚙️','설정',false],['👤','매장',false]];
+  if (role === 'courier')  items = [['🛵','배달',true],['🗺️','지도',false],['💰','정산',false],['👤','내정보',false]];
+  const nav = el('div', 'bnav');
+  items.forEach(([ic, lb, ac]) => {
+    nav.appendChild(html(`<div class="item ${ac?'active':''}"><span class="ic">${ic}</span><span>${lb}</span></div>`));
+  });
+  return nav;
+}
+
+function renderStoryBar(ctx) {
+  const st = currentStory();
+  const i = Math.min(state.storyStep, st.length);
+  const step = st[i-1];
+  $('#story-title').textContent = `${ctx.name} · ${roleLabel()} 시나리오`;
+  $('#story-num').textContent = `${i} / ${st.length}`;
+  $('#story-label').textContent = step ? step.label : '';
+  $('#story-prev').disabled = i <= 1;
+  $('#story-next').disabled = i >= st.length;
+  const prog = $('#story-progress');
+  prog.innerHTML = '';
+  st.forEach((_, idx) => {
+    const cls = idx + 1 < i ? 'done' : idx + 1 === i ? 'now' : '';
+    prog.appendChild(html(`<span class="${cls}"></span>`));
+  });
+}
+
+/* ===== helpers ===== */
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+function html(s) {
+  const d = document.createElement('template');
+  d.innerHTML = s.trim();
+  // Return a DocumentFragment so multi-root templates append all children, not just the first.
+  return d.content.cloneNode(true);
+}
+
+/* ===== Bindings ===== */
+$('#toolbar-head').addEventListener('click', () => {
+  $('#toolbar').classList.toggle('open');
+});
+
+$$('#scenarios .pill').forEach(b => b.addEventListener('click', () => {
+  state.scenario = b.dataset.sc;
+  state.storyStep = 1;
+  state.groupbuyMembers = scenarios[state.scenario].nowOrders;
+  $$('#scenarios .pill').forEach(p => p.classList.remove('active'));
+  b.classList.add('active');
+  renderPhones();
+}));
+
+$$('#themes .pill').forEach(b => b.addEventListener('click', () => {
+  const th = b.dataset.th;
+  b.classList.toggle('active');
+  state.themes = $$('#themes .pill').filter(p => p.classList.contains('active')).map(p => p.dataset.th);
+  if (state.themes.length === 0) {
+    b.classList.add('active');
+    state.themes = [th];
+  }
+  state.themes.sort();
+  renderPhones();
+}));
+
+$$('#roles .pill').forEach(b => b.addEventListener('click', () => {
+  state.role = b.dataset.rl;
+  state.storyStep = 1;
+  $$('#roles .pill').forEach(p => p.classList.remove('active'));
+  b.classList.add('active');
+  renderPhones();
+}));
+
+$('#story-prev').addEventListener('click', () => {
+  if (state.storyStep > 1) { state.storyStep--; renderPhones(); }
+});
+$('#story-next').addEventListener('click', () => {
+  const st = currentStory();
+  if (state.storyStep < st.length) { state.storyStep++; renderPhones(); }
+});
+
+/* Keyboard: arrow keys advance story */
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight') { $('#story-next').click(); }
+  if (e.key === 'ArrowLeft')  { $('#story-prev').click(); }
+});
+
+/* Live counters — groupbuy member ticks every 3s on heatwave/heatup */
+setInterval(() => {
+  if ((state.scenario === 'heatwave' || state.scenario === 'heatup') &&
+      currentStep().id === 'home') {
+    state.groupbuyMembers = Math.min(60, state.groupbuyMembers + (Math.random() < 0.5 ? 1 : 0));
+    // partial update without full re-render: just tick the count + width
+    $$('[data-gb-count]').forEach(n => n.textContent = state.groupbuyMembers);
+    const goal = 60;
+    const filled = Math.min(100, (state.groupbuyMembers / goal) * 100);
+    $$('.groupbuy .progress .fill').forEach(f => f.style.width = `${filled}%`);
+  }
+}, 3000);
+
+/* Live ETA countdown — ticks every 1s when on customer 'live' step */
+setInterval(() => {
+  if (state.role === 'customer' && currentStep().id === 'live' && state.liveEtaSec > 0) {
+    state.liveEtaSec--;
+    $$('.live-eta').forEach(n => n.innerHTML = formatEta(state.liveEtaSec));
+  }
+}, 1000);
+
+renderPhones();
+</script>
+</body>
+</html>
