@@ -23,3 +23,5 @@ dist/
 *.trace
 debug-*.png
 debug-*.html
+
+.vercel
